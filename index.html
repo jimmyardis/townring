@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TownRing — Talk to your town.</title>
+<meta name="description" content="A phone number for every place. Voice-driven maps that explain themselves — demographics, economics, weather, crime, stories.">
+<meta property="og:title" content="TownRing — Talk to your town.">
+<meta property="og:description" content="A phone number for every place. Voice-driven maps that explain themselves.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://townring.com/">
+<meta name="theme-color" content="#0c0a08">
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230c0a08'/%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23ffb454' stroke-width='1.2'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23ffb454' stroke-width='1' opacity='0.55'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23ffb454'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=JetBrains+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #0c0a08;
+    --bg-soft: #14110e;
+    --bg-card: #16130f;
+    --ink: #f5ede0;
+    --ink-soft: rgba(245, 237, 224, 0.62);
+    --ink-faint: rgba(245, 237, 224, 0.28);
+    --ink-vfaint: rgba(245, 237, 224, 0.12);
+    --line: rgba(245, 237, 224, 0.10);
+    --ring: #ffb454;
+    --ring-glow: rgba(255, 180, 84, 0.45);
+    --cool: #6fb6c4;
+    --live: #7fc99a;
+    --live-glow: rgba(127, 201, 154, 0.55);
+    --pending: #d8a04a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  body {
+    background:
+      radial-gradient(ellipse 800px 600px at 18% -10%, rgba(255, 180, 84, 0.07), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 95% 110%, rgba(111, 182, 196, 0.045), transparent 60%),
+      var(--bg);
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 80px 80px;
+    pointer-events: none;
+    opacity: 0.45;
+    z-index: 0;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 90%);
+  }
+
+  /* Grain */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+  }
+
+  main { position: relative; z-index: 2; }
+
+  a { color: inherit; text-decoration: none; }
+
+  /* ----------------- NAV ----------------- */
+  nav {
+    padding: 24px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+  }
+
+  .logo-mark {
+    width: 22px;
+    height: 22px;
+    position: relative;
+  }
+  .logo-mark::before, .logo-mark::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--ring);
+    border-radius: 50%;
+  }
+  .logo-mark::after {
+    inset: 5px;
+    opacity: 0.5;
+  }
+  .logo-mark .dot {
+    position: absolute;
+    inset: 9px;
+    background: var(--ring);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--ring-glow);
+    animation: logo-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes logo-pulse {
+    0%, 100% { box-shadow: 0 0 8px var(--ring-glow); }
+    50% { box-shadow: 0 0 14px var(--ring-glow); }
+  }
+
+  .nav-meta {
+    color: var(--ink-soft);
+    display: flex;
+    gap: 32px;
+  }
+  .nav-meta span { display: inline-flex; align-items: center; gap: 8px; }
+  .nav-meta span::before {
+    content: '';
+    width: 4px; height: 4px;
+    background: var(--ink-faint);
+    border-radius: 50%;
+  }
+
+  /* ----------------- HERO ----------------- */
+  .hero {
+    padding: 56px 48px 88px;
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 64px;
+    align-items: center;
+    min-height: 78vh;
+  }
+
+  .hero-text { max-width: 540px; }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ring);
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 36px;
+    height: 1px;
+    background: var(--ring);
+  }
+
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: 'opsz' 144, 'SOFT' 50, 'wght' 360;
+    font-size: clamp(58px, 8.5vw, 112px);
+    line-height: 0.94;
+    letter-spacing: -0.028em;
+    margin-bottom: 28px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100, 'wght' 360;
+    color: var(--ring);
+    position: relative;
+  }
+
+  .hero p.lead {
+    font-size: 19px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    max-width: 480px;
+    margin-bottom: 40px;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .hero-cta .arrow {
+    color: var(--ring);
+    animation: arrow-bob 2.4s ease-in-out infinite;
+    font-size: 14px;
+  }
+  @keyframes arrow-bob {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(7px); }
+  }
+
+  /* ----------------- MAP STAGE ----------------- */
+  .map-stage {
+    position: relative;
+    aspect-ratio: 1000 / 780;
+    width: 100%;
+    max-width: 720px;
+    justify-self: center;
+    padding: 24px;
+  }
+  .map-stage svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    display: block;
+  }
+
+  .map-corner {
+    position: absolute;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    line-height: 1.3;
+  }
+  .map-corner.tl { top: 0; left: 0; }
+  .map-corner.tr { top: 0; right: 0; text-align: right; }
+  .map-corner.bl { bottom: 0; left: 0; }
+  .map-corner.br { bottom: 0; right: 0; text-align: right; }
+  .map-corner strong { color: var(--ink-soft); font-weight: 500; }
+
+  /* corner brackets */
+  .bracket {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-color: var(--ink-vfaint);
+    border-style: solid;
+    border-width: 0;
+  }
+  .bracket.tl { top: 0; left: 0; border-top-width: 1px; border-left-width: 1px; }
+  .bracket.tr { top: 0; right: 0; border-top-width: 1px; border-right-width: 1px; }
+  .bracket.bl { bottom: 0; left: 0; border-bottom-width: 1px; border-left-width: 1px; }
+  .bracket.br { bottom: 0; right: 0; border-bottom-width: 1px; border-right-width: 1px; }
+
+  /* SC outline draw-in */
+  .sc-outline {
+    fill: rgba(255, 180, 84, 0.035);
+    stroke: var(--ring);
+    stroke-width: 1.4;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    pathLength: 1;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: draw-sc 2.8s cubic-bezier(0.65, 0, 0.35, 1) 0.3s forwards;
+    filter: drop-shadow(0 0 16px rgba(255, 180, 84, 0.18));
+  }
+  @keyframes draw-sc {
+    to { stroke-dashoffset: 0; }
+  }
+
+  /* Cities */
+  .city {
+    opacity: 0;
+    animation: city-appear 0.7s ease-out forwards;
+  }
+  .city.chapin    { animation-delay: 2.5s; }
+  .city.columbia  { animation-delay: 2.8s; }
+  .city.charleston{ animation-delay: 3.1s; }
+
+  @keyframes city-appear {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .city .dot {
+    fill: var(--ring);
+    filter: drop-shadow(0 0 6px var(--ring-glow));
+  }
+  .city.live .dot {
+    fill: var(--live);
+    filter: drop-shadow(0 0 8px var(--live-glow));
+  }
+
+  /* Pulsing rings */
+  .ring-pulse {
+    fill: none;
+    stroke: var(--ring);
+    stroke-width: 1.3;
+    opacity: 0;
+  }
+  .city.live .ring-pulse { stroke: var(--live); }
+
+  /* Stagger rings within each city, and offset cities NW → SE */
+  .city.chapin    .r1 { animation: pulse-ring 3.4s ease-out 3.6s infinite; }
+  .city.chapin    .r2 { animation: pulse-ring 3.4s ease-out 4.7s infinite; }
+  .city.chapin    .r3 { animation: pulse-ring 3.4s ease-out 5.8s infinite; }
+
+  .city.columbia  .r1 { animation: pulse-ring 3.4s ease-out 4.0s infinite; }
+  .city.columbia  .r2 { animation: pulse-ring 3.4s ease-out 5.1s infinite; }
+  .city.columbia  .r3 { animation: pulse-ring 3.4s ease-out 6.2s infinite; }
+
+  .city.charleston .r1 { animation: pulse-ring 3.4s ease-out 4.4s infinite; }
+  .city.charleston .r2 { animation: pulse-ring 3.4s ease-out 5.5s infinite; }
+  .city.charleston .r3 { animation: pulse-ring 3.4s ease-out 6.6s infinite; }
+
+  @keyframes pulse-ring {
+    0%   { r: 4;  opacity: 0.85; stroke-width: 1.4; }
+    80%  { opacity: 0; }
+    100% { r: 75; opacity: 0; stroke-width: 0.3; }
+  }
+
+  /* City labels */
+  .city-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    fill: var(--ink);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .city.live .city-label { fill: var(--live); }
+  .city-coord {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    fill: var(--ink-faint);
+    letter-spacing: 0.05em;
+  }
+  .city-tick {
+    stroke: var(--ink-vfaint);
+    stroke-width: 0.5;
+  }
+
+  /* Scan line */
+  .scan-line {
+    stroke: var(--ring);
+    stroke-width: 0.4;
+    opacity: 0;
+    transform-box: view-box;
+    animation: scan 9s linear infinite;
+    animation-delay: 3s;
+  }
+  @keyframes scan {
+    0%   { transform: translateY(0); opacity: 0; }
+    8%   { opacity: 0.22; }
+    92%  { opacity: 0.22; }
+    100% { transform: translateY(780px); opacity: 0; }
+  }
+
+  /* ----------------- CITIES SECTION ----------------- */
+  .cities-section {
+    padding: 96px 48px 48px;
+  }
+
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 56px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 28px;
+    gap: 24px;
+  }
+  .section-head h2 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: 'opsz' 144, 'SOFT' 30, 'wght' 380;
+    font-size: clamp(40px, 5.2vw, 60px);
+    letter-spacing: -0.025em;
+    line-height: 1;
+  }
+  .section-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    text-align: right;
+    line-height: 1.6;
+  }
+  .section-meta .divider {
+    color: var(--ink-faint);
+    margin: 0 6px;
+  }
+
+  .city-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .city-card {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 28px 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    min-height: 380px;
+    transition: all 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+    overflow: hidden;
+  }
+  .city-card.live { cursor: pointer; }
+  .city-card.live:hover {
+    border-color: var(--live);
+    transform: translateY(-5px);
+    box-shadow: 0 28px 64px -28px rgba(127, 201, 154, 0.35);
+  }
+  .city-card.live:hover .card-cta .arrow-out { transform: translate(4px, -4px); }
+  .city-card.coming { opacity: 0.72; }
+
+  /* Diagonal grain in card corner */
+  .city-card::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    pointer-events: none;
+    background: linear-gradient(135deg, transparent 50%, rgba(255,180,84,0.025) 100%);
+  }
+
+  .card-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .status-pill .indicator {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--pending);
+    flex-shrink: 0;
+  }
+  .live .status-pill {
+    color: var(--live);
+  }
+  .live .status-pill .indicator {
+    background: var(--live);
+    box-shadow: 0 0 8px var(--live-glow);
+  }
+  .coming .status-pill {
+    color: var(--pending);
+  }
+  .coming .status-pill .indicator {
+    animation: ring-blink 1.4s ease-in-out infinite;
+  }
+  @keyframes ring-blink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.35; transform: scale(0.8); }
+  }
+
+  .card-num {
+    color: var(--ink-faint);
+  }
+
+  .card-headline { margin-top: 4px; }
+  .card-city {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: 'opsz' 144, 'SOFT' 60, 'wght' 360;
+    font-size: 46px;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    margin-bottom: 8px;
+  }
+  .card-state {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+  }
+
+  .card-data {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 18px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+  .card-data > div { display: flex; flex-direction: column; gap: 4px; }
+  .card-data dt {
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 9px;
+  }
+  .card-data dd { color: var(--ink); font-size: 12px; }
+
+  .card-cta {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+  .live .card-cta { color: var(--live); }
+  .coming .card-cta { color: var(--ink-faint); }
+  .arrow-out { transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1); display: inline-block; }
+
+  /* ----------------- ABOUT ----------------- */
+  .about {
+    padding: 88px 48px 80px;
+    border-top: 1px solid var(--line);
+    margin-top: 48px;
+  }
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: start;
+  }
+  .about h3 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: 'opsz' 144, 'SOFT' 40, 'wght' 380;
+    font-size: clamp(34px, 4.2vw, 52px);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    margin-bottom: 28px;
+  }
+  .about h3 em {
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100, 'wght' 380;
+    color: var(--ring);
+  }
+  .about p {
+    color: var(--ink-soft);
+    font-size: 17px;
+    margin-bottom: 18px;
+    max-width: 480px;
+  }
+
+  .feature-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .feature {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 20px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .feature:first-child { padding-top: 0; }
+  .feature:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .feature-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ring);
+    letter-spacing: 0.12em;
+    padding-top: 8px;
+  }
+  .feature h4 {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: 'opsz' 36, 'wght' 500;
+    font-size: 23px;
+    margin-bottom: 6px;
+    letter-spacing: -0.012em;
+  }
+  .feature p {
+    font-size: 15.5px;
+    line-height: 1.55;
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  /* ----------------- FOOTER ----------------- */
+  footer {
+    padding: 36px 48px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  footer .footer-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  footer .ring-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--ring);
+    box-shadow: 0 0 6px var(--ring-glow);
+  }
+
+  /* ----------------- RESPONSIVE ----------------- */
+  @media (max-width: 980px) {
+    .hero {
+      grid-template-columns: 1fr;
+      padding: 32px 28px 64px;
+      gap: 32px;
+    }
+    .hero-text { order: 2; }
+    .map-stage { order: 1; max-width: 100%; }
+    nav { padding: 18px 28px; }
+    .nav-meta { display: none; }
+    .cities-section, .about { padding-left: 28px; padding-right: 28px; }
+    .city-grid { grid-template-columns: 1fr; }
+    .about-grid { grid-template-columns: 1fr; gap: 48px; }
+    footer { padding: 28px; flex-direction: column; gap: 14px; text-align: center; }
+    body::before { background-size: 50px 50px; }
+    .section-head { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .section-meta { text-align: left; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    .sc-outline { stroke-dashoffset: 0; }
+    .city { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <!-- ============ NAV ============ -->
+  <nav>
+    <a href="/" class="logo">
+      <span class="logo-mark"><span class="dot"></span></span>
+      <span>Town&nbsp;·&nbsp;Ring</span>
+    </a>
+    <div class="nav-meta">
+      <span>Beta · v0.1</span>
+      <span>South Carolina</span>
+      <span>2026</span>
+    </div>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="hero-text">
+      <div class="eyebrow">Voice + Map · Civic AI</div>
+      <h1>Talk to your <em>town.</em></h1>
+      <p class="lead">A phone number for every place. Voice-driven maps that explain themselves — demographics, economics, weather, crime, stories. Speak to the map, or call the number.</p>
+      <div class="hero-cta">
+        <span>Three lines open — start with Chapin</span>
+        <span class="arrow">→</span>
+      </div>
+    </div>
+
+    <div class="map-stage">
+      <span class="bracket tl"></span>
+      <span class="bracket tr"></span>
+      <span class="bracket bl"></span>
+      <span class="bracket br"></span>
+      <div class="map-corner tl"><strong>SC · 1:2.4M</strong><br>WGS84</div>
+      <div class="map-corner tr"><strong>Live · 1/3</strong><br>Ring radius var.</div>
+      <div class="map-corner bl">Voice ch. open</div>
+      <div class="map-corner br">∿ 18.04 kHz</div>
+
+      <svg viewBox="0 0 1000 780" xmlns="http://www.w3.org/2000/svg" aria-label="Animated map of South Carolina showing three cities">
+        <defs>
+          <pattern id="innergrid" width="50" height="50" patternUnits="userSpaceOnUse">
+            <path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(245,237,224,0.045)" stroke-width="0.5"/>
+          </pattern>
+          <radialGradient id="scfill" cx="40%" cy="35%" r="80%">
+            <stop offset="0%" stop-color="rgba(255,180,84,0.07)"/>
+            <stop offset="100%" stop-color="rgba(255,180,84,0.02)"/>
+          </radialGradient>
+        </defs>
+
+        <!-- subtle inner grid -->
+        <rect width="1000" height="780" fill="url(#innergrid)"/>
+
+        <!-- Scanline -->
+        <line class="scan-line" x1="-50" y1="0" x2="1050" y2="0"/>
+
+        <!-- SC outline (derived from real lat/lon boundary points, projected) -->
+        <path class="sc-outline" pathLength="1" fill="url(#scfill)" d="
+          M 61 54
+          L 71 37
+          L 192 5
+          L 232 2
+          L 263 0
+          L 293 5
+          L 364 22
+          L 404 29
+          L 475 42
+          L 530 71
+          L 675 95
+          L 748 147
+          L 879 225
+          L 899 281
+          L 980 332
+          Q 945 360, 911 374
+          Q 870 415, 832 455
+          Q 815 490, 796 524
+          Q 750 560, 705 597
+          Q 665 632, 626 668
+          Q 590 678, 553 682
+          L 515 763
+          Q 490 720, 465 715
+          Q 445 640, 420 561
+          Q 360 495, 289 425
+          Q 240 380, 192 335
+          Q 155 280, 115 225
+          Q 95 190, 81 152
+          Q 71 122, 61 91
+          Z
+        "/>
+
+        <!-- Compass rosette -->
+        <g transform="translate(908, 86)" opacity="0.5">
+          <circle r="22" fill="none" stroke="rgba(245,237,224,0.18)" stroke-width="0.5"/>
+          <circle r="14" fill="none" stroke="rgba(245,237,224,0.13)" stroke-width="0.5"/>
+          <line x1="0" y1="-26" x2="0" y2="26" stroke="rgba(245,237,224,0.2)" stroke-width="0.5"/>
+          <line x1="-26" y1="0" x2="26" y2="0" stroke="rgba(245,237,224,0.2)" stroke-width="0.5"/>
+          <text x="0" y="-30" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="rgba(245,237,224,0.55)">N</text>
+        </g>
+
+        <!-- CHAPIN — live (label to upper-LEFT to avoid Columbia overlap) -->
+        <g class="city live chapin">
+          <circle class="ring-pulse r1" cx="414" cy="257" r="4"/>
+          <circle class="ring-pulse r2" cx="414" cy="257" r="4"/>
+          <circle class="ring-pulse r3" cx="414" cy="257" r="4"/>
+          <circle class="dot" cx="414" cy="257" r="5.5"/>
+          <line class="city-tick" x1="414" y1="257" x2="386" y2="228"/>
+          <text class="city-label" text-anchor="end" x="380" y="222">Chapin</text>
+          <text class="city-coord" text-anchor="end" x="380" y="236">34.17°N · 81.35°W</text>
+        </g>
+
+        <!-- COLUMBIA — ringing (label to lower-RIGHT) -->
+        <g class="city coming columbia">
+          <circle class="ring-pulse r1" cx="479" cy="298" r="4"/>
+          <circle class="ring-pulse r2" cx="479" cy="298" r="4"/>
+          <circle class="ring-pulse r3" cx="479" cy="298" r="4"/>
+          <circle class="dot" cx="479" cy="298" r="5"/>
+          <line class="city-tick" x1="479" y1="298" x2="510" y2="330"/>
+          <text class="city-label" x="516" y="336">Columbia</text>
+          <text class="city-coord" x="516" y="350">34.00°N · 81.03°W</text>
+        </g>
+
+        <!-- CHARLESTON — ringing (label to lower-LEFT, right-anchored, since dot sits near coast) -->
+        <g class="city coming charleston">
+          <circle class="ring-pulse r1" cx="688" cy="588" r="4"/>
+          <circle class="ring-pulse r2" cx="688" cy="588" r="4"/>
+          <circle class="ring-pulse r3" cx="688" cy="588" r="4"/>
+          <circle class="dot" cx="688" cy="588" r="5"/>
+          <line class="city-tick" x1="688" y1="588" x2="624" y2="616"/>
+          <text class="city-label" text-anchor="end" x="618" y="611">Charleston</text>
+          <text class="city-coord" text-anchor="end" x="618" y="625">32.78°N · 79.93°W</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ CITIES ============ -->
+  <section class="cities-section">
+    <div class="section-head">
+      <h2>Lines now ringing.</h2>
+      <div class="section-meta">
+        003 stations <span class="divider">/</span> 001 live <span class="divider">/</span> SC
+      </div>
+    </div>
+
+    <div class="city-grid">
+
+      <!-- CHAPIN -->
+      <a class="city-card live" href="https://jimmyardis.github.io/chapin-talkmap/" target="_blank" rel="noopener">
+        <div class="card-status">
+          <span class="status-pill"><span class="indicator"></span>Live now</span>
+          <span class="card-num">01 / 03</span>
+        </div>
+        <div class="card-headline">
+          <div class="card-city">Chapin</div>
+          <div class="card-state">South Carolina</div>
+        </div>
+        <dl class="card-data">
+          <div><dt>Pop. (ZIP)</dt><dd>~29,000</dd></div>
+          <div><dt>Layers</dt><dd>Demographics</dd></div>
+          <div><dt>Sessions</dt><dd>6 active</dd></div>
+          <div><dt>Coords</dt><dd>34.17°N · 81.35°W</dd></div>
+        </dl>
+        <div class="card-cta">
+          <span>Open the line</span>
+          <span class="arrow-out">↗</span>
+        </div>
+      </a>
+
+      <!-- COLUMBIA -->
+      <div class="city-card coming">
+        <div class="card-status">
+          <span class="status-pill"><span class="indicator"></span>Ringing…</span>
+          <span class="card-num">02 / 03</span>
+        </div>
+        <div class="card-headline">
+          <div class="card-city">Columbia</div>
+          <div class="card-state">South Carolina</div>
+        </div>
+        <dl class="card-data">
+          <div><dt>Pop.</dt><dd>~138,000</dd></div>
+          <div><dt>Layers</dt><dd>In build</dd></div>
+          <div><dt>Sessions</dt><dd>—</dd></div>
+          <div><dt>Coords</dt><dd>34.00°N · 81.03°W</dd></div>
+        </dl>
+        <div class="card-cta">
+          <span>Coming soon</span>
+          <span>○</span>
+        </div>
+      </div>
+
+      <!-- CHARLESTON -->
+      <div class="city-card coming">
+        <div class="card-status">
+          <span class="status-pill"><span class="indicator"></span>Ringing…</span>
+          <span class="card-num">03 / 03</span>
+        </div>
+        <div class="card-headline">
+          <div class="card-city">Charleston</div>
+          <div class="card-state">South Carolina</div>
+        </div>
+        <dl class="card-data">
+          <div><dt>Pop.</dt><dd>~155,000</dd></div>
+          <div><dt>Layers</dt><dd>In build</dd></div>
+          <div><dt>Sessions</dt><dd>—</dd></div>
+          <div><dt>Coords</dt><dd>32.78°N · 79.93°W</dd></div>
+        </dl>
+        <div class="card-cta">
+          <span>Coming soon</span>
+          <span>○</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <section class="about">
+    <div class="about-grid">
+      <div>
+        <div class="eyebrow">What it is</div>
+        <h3>A <em>voice line</em> for every place.</h3>
+        <p>Every TownRing map carries its own phone number and its own brain. Census, economic, weather, crime, planning, and oral-history layers all live in a retrieval database the agent can read. Ask it anything about the place — out loud — and it answers, narrates, and operates the map for you.</p>
+        <p>It works two ways. Speak to the map on screen, or call the number from anywhere and the agent will drive the map for you on the other end. Towns deserve voices. This is theirs.</p>
+      </div>
+
+      <div class="feature-list">
+        <div class="feature">
+          <div class="feature-num">01</div>
+          <div>
+            <h4>Speak or call.</h4>
+            <p>Talk to the map in your browser, or dial the town's number from anywhere. Same agent, same data, two surfaces.</p>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-num">02</div>
+          <div>
+            <h4>Layers, on command.</h4>
+            <p>Population change, income, crime, weather, infrastructure — toggle, narrate, compare, or zoom by voice.</p>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-num">03</div>
+          <div>
+            <h4>Stories, not just stats.</h4>
+            <p>The agent knows the patterns and the history. It can show you a number — or tell you why it's there.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <div class="footer-mark">
+      <span class="ring-dot"></span>
+      <span>TownRing · Built in Chapin, SC</span>
+    </div>
+    <div>2026 · v0.1 · A civic experiment</div>
+  </footer>
+
+</main>
+</body>
+</html>
