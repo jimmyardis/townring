@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Chapin Map</title>
+
+  <!-- Mapbox GL JS -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.js"></script>
+
+  <!-- Editorial typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="map"></div>
+
+  <header class="overlay">
+    <h1>The Chapin Map</h1>
+    <p class="subtitle">A voice-driven portrait of Chapin, South Carolina</p>
+    <p class="phase-tag">Session 6 &middot; Demographics</p>
+  </header>
+
+  <div class="controls">
+    <div class="metric-selector-wrap">
+      <label class="metric-selector-label" for="metricSelector">View by</label>
+      <select id="metricSelector" class="metric-selector"></select>
+    </div>
+    <button id="togglePlaces" title="Show or hide place boundaries (towns, CDPs, ZIP 29036)">Hide Places</button>
+    <button id="resetView" title="Return to default view of Chapin">Reset view</button>
+    <button id="toggle3D" title="Switch between 3D and top-down view">Toggle 3D</button>
+    <button id="cycleLight" title="Cycle through day, dusk, dawn, night">Lighting: day</button>
+    <button id="cycleStyle" title="Cycle between Standard, Satellite, and Dark basemaps">Style: standard</button>
+    <button id="toggleCinematic" title="Cinematic mode — Chapin floating in space">✦ Cinematic</button>
+  </div>
+
+  <!-- Legend (bottom-right) — title + gradient swap based on selected metric -->
+  <div id="legend" class="legend">
+    <div class="legend-title">Population growth, 2010 &rarr; 2020</div>
+    <div class="legend-bar">
+      <div class="legend-gradient"></div>
+    </div>
+    <div class="legend-labels">
+      <span>&minus;15%</span>
+      <span>0%</span>
+      <span>+25%</span>
+      <span>+85%</span>
+    </div>
+    <div class="legend-extra">
+      <span class="swatch new-tract"></span>
+      <span class="legend-null-label">New tract since 2010 (boundary changed)</span>
+    </div>
+
+    <div class="legend-section-divider"></div>
+    <div class="legend-section-title">Places</div>
+    <div class="legend-extra">
+      <span class="legend-line solid"></span>
+      <span>Town / CDP boundary</span>
+    </div>
+    <div class="legend-extra">
+      <span class="legend-line dashed"></span>
+      <span>ZIP 29036 &mdash; "Chapin" mailing area</span>
+    </div>
+    <div class="legend-extra">
+      <span class="legend-dot"></span>
+      <span>Colloquial place (Ballentine, White Rock)</span>
+    </div>
+
+    <div class="legend-source">Census Bureau, decennial 2010 + 2020 plus ACS 2018-2022. Lexington &amp; Richland Counties, SC. Place boundaries: TIGER. Colloquial centroids approximate.</div>
+  </div>
+
+  <!-- Time slider (only visible when a year-aware metric is selected) -->
+  <div id="timeSlider" class="time-slider hidden">
+    <div class="time-slider-label">
+      <span class="time-slider-prefix">Year</span>
+      <span class="time-slider-year">2022</span>
+    </div>
+    <input type="range" id="yearRange" min="2014" max="2022" value="2022" step="1" aria-label="Year">
+    <div class="time-slider-bounds">
+      <span>2014</span>
+      <span>2022</span>
+    </div>
+  </div>
+
+  <!-- Voice agent cluster (bottom-center) -->
+  <div class="voice-cluster">
+    <div id="transcript" class="transcript"></div>
+    <div id="voiceStatus" class="voice-status"></div>
+    <button id="voiceBtn" class="voice-btn" title="Click to start a voice conversation with the Chapin Map">
+      <svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.31 6-6.72h-1.7z"/>
+      </svg>
+      <span class="label">Talk to the Map</span>
+    </button>
+  </div>
+
+  <footer class="attribution">
+    <span>Drag to pan &middot; Right-click + drag (or two-finger drag) to rotate &middot; Scroll to zoom</span>
+  </footer>
+
+  <script src="map.js"></script>
+  <script type="module" src="voice.js"></script>
+</body>
+</html>
