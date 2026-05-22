@@ -1,0 +1,34 @@
+{
+  "areas": {
+    "CENA": {
+      "name": "Cannonborough-Elliotborough",
+      "short": "CENA",
+      "color": "#5D6B4F",
+      "description": "Historic walkable neighborhood north of the walled city. Bounded by Septima Clark Parkway, Meeting, Bee/Morris/Mary, and President Streets.",
+      "n": 927,
+      "n_oo": 204,
+      "n_civic": 46,
+      "polygon_acres": 194.09645418622458,
+      "parcel_land_acres": 88.02952406068732,
+      "civic_land_acres": 8.369630618733915,
+      "taxable_land_acres": 79.65989344195341,
+      "row_acres": 106.06693012553725,
+      "row_pct": 54.64650581600632,
+      "appr": 1399237480,
+      "land": 676801705,
+      "imp": 722435775,
+      "tax": 24993206.158771988,
+      "taxable_appr": 1238457480,
+      "taxable_tax": 21976651.798771992,
+      "vpa": 7208980.122107283,
+      "tpa": 128766.93839441508,
+      "vpa_taxable": 15546813.163922187,
+      "tpa_taxable": 275881.0092406908,
+      "land_pct": 48.36932362617959
+    }
+  },
+  "millage": 313.6,
+  "ratio_oo": 0.04,
+  "ratio_other": 0.06,
+  "lost_rate": 0.0009
+}

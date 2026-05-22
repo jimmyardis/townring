@@ -1,0 +1,37 @@
+{
+  "areas": {
+    "Columbia": {
+      "name": "Columbia city",
+      "short": "Columbia",
+      "color": "#003B5C",
+      "description": "City of Columbia, SC \u2014 state capital, Richland County seat, home of the State House and USC campus.",
+      "n": 42468,
+      "n_oo": 19221,
+      "n_civic": 3391,
+      "polygon_acres": 132988.4641,
+      "parcel_land_acres": null,
+      "civic_land_acres": null,
+      "taxable_land_acres": null,
+      "row_acres": null,
+      "row_pct": null,
+      "appr": 16922349900,
+      "land": 4762531500,
+      "imp": 12167621900,
+      "tax": 312490468.67,
+      "taxable_appr": 13612788900,
+      "taxable_tax": 312490468.67,
+      "vpa": 127247.0,
+      "tpa": 2350.0,
+      "vpa_taxable": 102361.0,
+      "tpa_taxable": 2350.0,
+      "land_pct": 28.14,
+      "methodology_note": "Parcel land breakdown skipped (large geography; polygon area used as denominator)."
+    }
+  },
+  "millage": 447.4,
+  "ratio_oo": 0.04,
+  "ratio_other": 0.06,
+  "lost_rate": 0.0,
+  "source_endpoint": "https://smpesri.scdot.org/arcgis/rest/services/GISMapping/SC_Parcels/MapServer/40/query",
+  "run_date": "2026-05-22"
+}

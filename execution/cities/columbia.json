@@ -1,0 +1,14 @@
+{
+  "city": "Columbia",
+  "state": "SC",
+  "county": "Richland",
+  "fips_state": "45",
+  "fips_county": "079",
+  "center_lng": -81.0348,
+  "center_lat": 34.0007,
+  "millage": 447.4,
+  "lost_rate": 0.0,
+  "where_clause": "TAXAREA='75'",
+  "scdot_layer": 40,
+  "notes": "TAXAREA 75 = City of Columbia. Millage 447.4 needs verification against Richland County Auditor. No LOST credit confirmed for Richland County."
+}

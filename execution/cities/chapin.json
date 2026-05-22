@@ -1,0 +1,15 @@
+{
+  "city": "Chapin",
+  "state": "SC",
+  "county": "Lexington",
+  "fips_state": "45",
+  "fips_county": "063",
+  "center_lng": -81.3523,
+  "center_lat": 34.1673,
+  "millage_town": 551.582,
+  "millage_unincorp": 461.743,
+  "lost_rate": 0.0,
+  "tax_district_town": "5C",
+  "scdot_layer": 32,
+  "notes": "Newberry County (FIPS 45071) tracts 9506.03 and 9506.04 have no public REST endpoint — excluded from Greater Chapin run."
+}

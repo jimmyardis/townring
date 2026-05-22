@@ -1,0 +1,34 @@
+{
+  "areas": {
+    "West Ashley": {
+      "name": "Savannah Highway suburban corridor",
+      "short": "West Ashley",
+      "color": "#445B7A",
+      "description": "Representative suburban arterial commercial corridor (Hendrick Automotive row, hotels, strip retail) + adjacent residential in West Ashley, City of Charleston TD 63",
+      "n": 177,
+      "n_oo": 54,
+      "n_civic": 6,
+      "polygon_acres": 69.50544196880628,
+      "parcel_land_acres": 49.1343274260112,
+      "civic_land_acres": 3.9103175720049994,
+      "taxable_land_acres": 45.2240098540062,
+      "row_acres": 20.371114542795084,
+      "row_pct": 29.30866125840556,
+      "appr": 72913640,
+      "land": 36104338,
+      "imp": 36809302,
+      "tax": 1262627.0644800006,
+      "taxable_appr": 59326640,
+      "taxable_tax": 1007707.7704799996,
+      "vpa": 1049034.9810698752,
+      "tpa": 18165.873472852123,
+      "vpa_taxable": 1311839.4452752073,
+      "tpa_taxable": 22282.583382878223,
+      "land_pct": 49.51657604804807
+    }
+  },
+  "millage": 313.6,
+  "ratio_oo": 0.04,
+  "ratio_other": 0.06,
+  "lost_rate": 0.0009
+}

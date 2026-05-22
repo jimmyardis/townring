@@ -1,0 +1,41 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Charleston Walled City 1704",
+        "source": "Butler 2022 / HALS SC-24 / South Adger's Wharf 2012",
+        "approx_acreage": 62,
+        "boundary_authority": "Mayor's Walled City Task Force"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.9302,
+              32.7712
+            ],
+            [
+              -79.9271,
+              32.7713
+            ],
+            [
+              -79.9252,
+              32.7761
+            ],
+            [
+              -79.9316,
+              32.7778
+            ],
+            [
+              -79.9302,
+              32.7712
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

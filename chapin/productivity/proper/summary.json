@@ -1,0 +1,57 @@
+{
+  "areas": {
+    "Chapin": {
+      "name": "Town of Chapin",
+      "short": "Chapin",
+      "color": "#6B1F00",
+      "description": "Incorporated Town of Chapin, SC. Census TIGER GEOID 4513150. Lexington County Tax District 5AFD (combined millage 551.582).",
+      "n": 795,
+      "n_oo": 404,
+      "n_civic": 53,
+      "polygon_acres": 1296.3370469177078,
+      "parcel_land_acres": 813.6234171888698,
+      "civic_land_acres": 238.7084102395932,
+      "taxable_land_acres": 574.9150069492766,
+      "row_acres": 482.713629728838,
+      "row_pct": 37.23673799777481,
+      "appr": 278461927.0,
+      "land": 76872255.0,
+      "imp": 151177466.0,
+      "tax": 7047621.511383265,
+      "taxable_appr": 250316096.0,
+      "taxable_tax": 7047621.511383265,
+      "vpa": 214806.7338367727,
+      "tpa": 5436.565689563798,
+      "vpa_taxable": 435396.6985977195,
+      "tpa_taxable": 12258.54504786837,
+      "land_pct": 27.606019906628028
+    },
+    "Downtown Chapin": {
+      "n": 269,
+      "n_oo": 169,
+      "n_civic": 20,
+      "polygon_acres": 722.0976425564655,
+      "appr": 105970125.0,
+      "tax": 2366851.7530447994,
+      "land": 25720129.0,
+      "vpa": 146753.17956285048,
+      "tpa": 3277.744744693194,
+      "land_pct": 24.271113202895627
+    },
+    "Outside Downtown": {
+      "n": 526,
+      "n_oo": 235,
+      "n_civic": 33,
+      "polygon_acres": 574.2394043612422,
+      "appr": 172491802.0,
+      "tax": 4680769.758338456,
+      "land": 51152126.0,
+      "vpa": 300383.0818469729,
+      "tpa": 8151.251416724234,
+      "land_pct": 29.65481571118377
+    }
+  },
+  "millage": 551.582,
+  "ratio_oo": 0.04,
+  "ratio_other": 0.06
+}

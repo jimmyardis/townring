@@ -1,0 +1,156 @@
+{
+  "areas": {
+    "Walled City": {
+      "n": 831,
+      "n_oo": 229,
+      "n_civic": 84,
+      "polygon_acres": 73.6479648959441,
+      "appr": 1535843603,
+      "tax": 24574638.77823399,
+      "land": 540033510,
+      "vpa": 20853849.867677487,
+      "tpa": 333677.0922720684,
+      "land_pct": 35.16201187055372,
+      "taxable_land_acres": 43.294223100996255,
+      "civic_land_acres": 10.65411033294135
+    },
+    "CENA": {
+      "n": 927,
+      "n_oo": 204,
+      "n_civic": 46,
+      "polygon_acres": 194.09645418622458,
+      "appr": 1399237480,
+      "tax": 24993206.158771988,
+      "land": 676801705,
+      "vpa": 7208980.122107283,
+      "tpa": 128766.93839441508,
+      "land_pct": 48.36932362617959,
+      "taxable_land_acres": 79.65989344195341,
+      "civic_land_acres": 8.369630618733915
+    },
+    "West Ashley": {
+      "n": 177,
+      "n_oo": 54,
+      "n_civic": 6,
+      "polygon_acres": 69.50544196880628,
+      "appr": 72913640,
+      "tax": 1262627.0644800006,
+      "land": 36104338,
+      "vpa": 1049034.9810698752,
+      "tpa": 18165.873472852123,
+      "land_pct": 49.51657604804807,
+      "taxable_land_acres": 45.2240098540062,
+      "civic_land_acres": 3.9103175720049994
+    },
+    "Mt. Pleasant": {
+      "n": 40143,
+      "n_oo": 28741,
+      "n_civic": 154,
+      "polygon_acres": 37583.461592160675,
+      "appr": 40983449458.0,
+      "tax": 452827615.3505744,
+      "land": 15124169621.0,
+      "vpa": 1090465.000343356,
+      "tpa": 12048.587228724753,
+      "land_pct": 36.90311533317689
+    },
+    "I'On": {
+      "n": 258,
+      "n_oo": 220,
+      "n_civic": 0,
+      "polygon_acres": 145.91846575,
+      "appr": 230269733.0,
+      "tax": 2235542.9794399985,
+      "land": 124673820.0,
+      "vpa": 1578071.2318790264,
+      "tpa": 15320.494002932583,
+      "land_pct": 54.14251294589376
+    },
+    "Park West": {
+      "n": 232,
+      "n_oo": 177,
+      "n_civic": 0,
+      "polygon_acres": 289.9538448200001,
+      "appr": 160830948.0,
+      "tax": 1729797.2307839994,
+      "land": 50157370.0,
+      "vpa": 554677.7560402482,
+      "tpa": 5965.7675236479,
+      "land_pct": 31.186392061806412
+    },
+    "Daniel Island": {
+      "n": 4682,
+      "n_oo": 0,
+      "n_civic": 0,
+      "polygon_acres": 6430.532300433136,
+      "appr": 5709894939.0,
+      "tax": 107437383.17222472,
+      "land": 0,
+      "vpa": 887935.0374486734,
+      "tpa": 16707.38566463435,
+      "land_pct": 0.0
+    },
+    "North Charleston": {
+      "n": 30277,
+      "n_oo": 12537,
+      "n_civic": 498,
+      "polygon_acres": 52343.22270026637,
+      "appr": 16201070415.0,
+      "tax": 269915977.61409545,
+      "land": 4663281583.0,
+      "vpa": 309516.1050318278,
+      "tpa": 5156.65569847922,
+      "land_pct": 28.78378689523152
+    },
+    "Folly Beach": {
+      "n": 2944,
+      "n_oo": 858,
+      "n_civic": 19,
+      "polygon_acres": 12083.067539177286,
+      "appr": 2930100015.0,
+      "tax": 34221877.99422008,
+      "land": 1491743448.0,
+      "vpa": 242496.369858039,
+      "tpa": 2832.2177198183717,
+      "land_pct": 50.91100782783348
+    }
+  },
+  "millage_used": {
+    "charleston_city": 313.6,
+    "mt_pleasant": 247.7,
+    "folly_beach": 225.6,
+    "sullivans_island": 192.3,
+    "isle_of_palms": 226.3,
+    "north_charleston_chs": 318.8,
+    "north_charleston_brk": 325.0,
+    "goose_creek": 310.5,
+    "hanahan": 310.5,
+    "daniel_island": 313.6,
+    "berkeley_uninc": 265.0,
+    "default": 265.0
+  },
+  "ratio_oo": 0.04,
+  "ratio_other": 0.06,
+  "lost_charleston": 0.0009,
+  "case_studies_by_era": {
+    "1704": [
+      "Walled City"
+    ],
+    "1820s-1870s": [
+      "CENA"
+    ],
+    "post-WWII suburban": [
+      "West Ashley",
+      "North Charleston",
+      "Folly Beach"
+    ],
+    "1990s-2000s suburban": [
+      "Park West"
+    ],
+    "1990s+ planned": [
+      "Daniel Island",
+      "I'On"
+    ]
+  },
+  "note": "Tri-county metro analysis. Charleston County via CDC_ParcelMap REST; Berkeley via Parcel Lines (layer 4); Dorchester not included for tax math due to lack of appraisal data in public REST. Daniel Island taxed at Charleston city rate (annexed). I'On and Park West derived from Mt. Pleasant parcel filter by subdivision/legal_descr name match."
+}

@@ -1,0 +1,47 @@
+{
+  "areas": {
+    "Greater Chapin": {
+      "name": "Greater Chapin",
+      "short": "Greater Chapin",
+      "color": "#6B1F00",
+      "description": "10-tract definition spanning Lexington and Newberry counties around the Town of Chapin (Census TIGER 2020).",
+      "tracts": [
+        "45071950603",
+        "45063021206",
+        "45063021204",
+        "45063021208",
+        "45063021207",
+        "45063021205"
+      ],
+      "n": 11539,
+      "n_oo": 7799,
+      "n_civic": 192,
+      "n_lexington": 11539,
+      "n_newberry": 0,
+      "polygon_acres": 56879.27282301638,
+      "parcel_land_acres": 22309.290077767928,
+      "civic_land_acres": 993.232686459806,
+      "taxable_land_acres": 21316.05739130812,
+      "row_acres": 34569.982745248446,
+      "row_pct": 60.77782121584999,
+      "appr": 4999735656.0,
+      "land": 1427241811.0,
+      "imp": 2739028062.0,
+      "tax": 103496071.1951982,
+      "taxable_appr": 4955236338.0,
+      "taxable_tax": 103496071.1951982,
+      "vpa": 87900.83641816252,
+      "tpa": 1819.5744435276638,
+      "vpa_taxable": 232464.95573898,
+      "tpa_taxable": 4855.3102149837505,
+      "land_pct": 28.546345431027326
+    }
+  },
+  "millage_notes": {
+    "lex_chapin": 551.582,
+    "lex_unincorporated": 461.743,
+    "newberry_default": 295.0
+  },
+  "ratio_oo": 0.04,
+  "ratio_other": 0.06
+}

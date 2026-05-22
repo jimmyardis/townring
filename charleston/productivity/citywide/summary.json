@@ -1,0 +1,31 @@
+{
+  "areas": {
+    "Charleston city": {
+      "name": "City of Charleston",
+      "short": "Charleston city",
+      "color": "#6B1F00",
+      "description": "Incorporated City of Charleston, SC. Census TIGER 4513330. Spans peninsula, West Ashley, James Island annexes, Daniel Island, Cainhoy. Combined millage 313.6 (TD 34/35/36/52/63/71/72/99) + SC 4%/6% ratios + 0.00090 LOST credit.",
+      "n": 30447,
+      "n_oo": 18498,
+      "n_civic": 484,
+      "polygon_acres": 88120.31097029636,
+      "parcel_acres_sum_ACRES_CAL": 69592.11484785045,
+      "appr": 26067806274.0,
+      "land": 9491451312.0,
+      "imp": 16576354962.0,
+      "tax": 384245090.99085706,
+      "taxable_appr": 24966828590.0,
+      "taxable_tax": 384245090.99085706,
+      "taxable_acres_sum": 66388.46074111029,
+      "vpa": 295820.6341644318,
+      "tpa": 4360.45999792691,
+      "tpa_taxable_acres": 5787.829491773677,
+      "land_pct": 36.410625475097085
+    }
+  },
+  "millage": 313.6,
+  "ratio_oo": 0.04,
+  "ratio_other": 0.06,
+  "lost_rate": 0.0009,
+  "note": "Sum of ACRES_CAL overcounts because condos store the building footprint as each unit's geometry. Polygon area is the right per-acre denominator for cross-area comparison."
+}

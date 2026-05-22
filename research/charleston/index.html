@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Walled City Still Pays — A Property Productivity Analysis of Charleston</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap&font-display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+:root {
+  --bg: #FAF7F2; --bg-card: #FFFFFF;
+  --ink: #1A1A1A; --ink-soft: #404040; --ink-mute: #7A7A7A;
+  --line: #E5DFD3; --line-strong: #C9C0AC;
+  --wc: #6B1F00; --wc-soft: #B8694D;
+  --ce: #5D6B4F; --ce-soft: #8FA275;
+  --wa: #445B7A; --wa-soft: #6F8BAB;
+  --green: #5D6B4F;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+body {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 18px; line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+.tnum { font-variant-numeric: tabular-nums; }
+.wrap { max-width: 740px; margin: 0 auto; padding: 0 24px; }
+.wide { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+header.hero { padding: 64px 0 32px; }
+.kicker {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--wc); font-weight: 600;
+  margin-bottom: 18px;
+}
+h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(36px, 5.5vw, 60px);
+  font-weight: 900; line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0 0 18px;
+}
+h1 em { font-style: italic; color: var(--wc); }
+.byline {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px; color: var(--ink-mute);
+  margin: 24px 0 0; padding-top: 16px; border-top: 1px solid var(--line);
+}
+.lede {
+  font-size: 22px; line-height: 1.5;
+  color: var(--ink-soft); font-weight: 400;
+  margin: 0;
+}
+.lede strong { color: var(--ink); }
+
+article { padding: 24px 0 64px; }
+
+h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px; font-weight: 700; line-height: 1.15;
+  margin: 56px 0 16px; letter-spacing: -0.01em;
+}
+h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  margin: 32px 0 8px;
+}
+
+p { margin: 0 0 18px; }
+article p:first-of-type::first-letter {
+  font-family: 'Playfair Display', serif;
+  font-size: 64px; line-height: 0.85;
+  float: left; padding: 6px 10px 0 0; font-weight: 700;
+  color: var(--wc);
+}
+
+.pull {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px; line-height: 1.3; font-style: italic;
+  color: var(--ink);
+  border-left: 4px solid var(--wc);
+  padding: 8px 0 8px 24px;
+  margin: 32px 0;
+}
+
+/* Hero compare */
+.compare-hero {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0;
+  margin: 32px 0; background: var(--bg-card);
+  border: 1px solid var(--line); border-radius: 4px; overflow: hidden;
+}
+.compare-hero .col { padding: 24px 22px; }
+.compare-hero .col + .col { border-left: 1px solid var(--line); }
+@media (max-width: 720px) {
+  .compare-hero { grid-template-columns: 1fr; }
+  .compare-hero .col + .col { border-left: 0; border-top: 1px solid var(--line); }
+}
+.tag {
+  display: inline-block; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+  font-weight: 600; padding: 4px 10px; border-radius: 999px;
+  margin-bottom: 10px; font-family: 'Inter', sans-serif;
+}
+.tag-wc { background: rgba(107,31,0,0.08); color: var(--wc); }
+.tag-ce { background: rgba(93,107,79,0.14); color: var(--ce); }
+.tag-wa { background: rgba(68,91,122,0.10); color: var(--wa); }
+.compare-hero .name {
+  font-family: 'Playfair Display', serif;
+  font-size: 19px; font-weight: 700; line-height: 1.1; margin-bottom: 6px;
+}
+.compare-hero .sub { font-size: 12px; color: var(--ink-mute); margin-bottom: 14px; font-family: 'Inter', sans-serif; line-height: 1.4; }
+.compare-hero .big {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px; font-weight: 700;
+  line-height: 1; letter-spacing: -0.01em;
+}
+.compare-hero .big.wc { color: var(--wc); }
+.compare-hero .big.ce { color: var(--ce); }
+.compare-hero .big.wa { color: var(--wa); }
+.compare-hero .big-l {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink-mute); margin-top: 6px;
+}
+
+.compare-bar-row {
+  display: grid; grid-template-columns: 200px 1fr 120px;
+  align-items: center; gap: 14px; margin: 14px 0;
+}
+.compare-bar-row .lbl { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; }
+.compare-bar-row .track {
+  background: var(--line); height: 36px; border-radius: 2px; overflow: hidden;
+}
+.compare-bar-row .fill-wc { height: 100%; background: linear-gradient(90deg, #B8694D, #6B1F00); }
+.compare-bar-row .fill-ce { height: 100%; background: linear-gradient(90deg, #8FA275, #5D6B4F); }
+.compare-bar-row .fill-wa { height: 100%; background: linear-gradient(90deg, #6F8BAB, #445B7A); }
+.compare-bar-row .val {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700; text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 640px) {
+  .compare-bar-row { grid-template-columns: 1fr; gap: 4px; }
+  .compare-bar-row .val { text-align: left; font-size: 20px; }
+}
+
+.chart-block {
+  margin: 40px 0; padding: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--line); border-radius: 4px;
+}
+.chart-block h3 { margin-top: 0; }
+.chart-block .sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px; color: var(--ink-mute);
+  margin: 0 0 14px;
+}
+.chart-body { height: 360px; }
+
+table.data {
+  width: 100%; border-collapse: collapse;
+  font-family: 'Inter', sans-serif; font-size: 13px;
+  margin: 16px 0 28px;
+}
+table.data th {
+  text-align: left; font-weight: 600;
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-mute); padding: 10px 8px;
+  border-bottom: 1px solid var(--line-strong);
+}
+table.data td {
+  padding: 10px 8px; border-bottom: 1px solid var(--line);
+}
+table.data td.r, table.data th.r { text-align: right; }
+table.data td.t { color: var(--ink-mute); }
+
+.three-tables { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin: 24px 0; }
+@media (max-width: 900px) { .three-tables { grid-template-columns: 1fr; } }
+.three-tables h4 {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px; font-weight: 700; margin: 0 0 8px;
+}
+
+aside.callout {
+  background: var(--bg-card);
+  border: 1px solid var(--line); border-left: 4px solid var(--green);
+  border-radius: 4px; padding: 24px; margin: 32px 0;
+}
+aside.callout h3 { margin-top: 0; font-size: 18px; }
+aside.callout p { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--ink-soft); }
+
+aside.callout.warm { border-left-color: var(--wc); background: rgba(184,105,77,0.04); }
+
+.companion-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 28px 0 8px;
+}
+@media (max-width: 640px) {
+  .companion-grid { grid-template-columns: 1fr; }
+}
+.cta-dashboard {
+  display: block;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--wc);
+  border-radius: 4px;
+  padding: 24px 26px;
+  text-decoration: none;
+  color: var(--ink);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.cta-dashboard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(107, 31, 0, 0.10);
+  border-color: var(--wc-soft);
+}
+.cta-dashboard.slides { border-left-color: var(--ce); }
+.cta-dashboard.slides:hover {
+  box-shadow: 0 10px 28px rgba(93, 107, 79, 0.12);
+  border-color: var(--ce-soft);
+}
+.cta-dashboard .cta-eyebrow {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--wc); font-weight: 600;
+  margin-bottom: 10px;
+}
+.cta-dashboard.slides .cta-eyebrow { color: var(--ce); }
+.cta-dashboard .cta-title {
+  display: block;
+  font-family: 'Playfair Display', serif;
+  font-size: 21px; font-weight: 700; line-height: 1.25;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.cta-dashboard .cta-arrow {
+  display: inline-block;
+  color: var(--wc);
+  transition: transform 0.18s ease;
+}
+.cta-dashboard.slides .cta-arrow { color: var(--ce); }
+.cta-dashboard:hover .cta-arrow { transform: translateX(4px); }
+.cta-dashboard .cta-sub {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px; line-height: 1.5; color: var(--ink-mute);
+  margin: 0;
+}
+
+footer {
+  border-top: 1px solid var(--line);
+  padding: 40px 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px; color: var(--ink-mute);
+}
+footer h4 { font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); margin: 0 0 12px; }
+footer ol { padding-left: 20px; margin: 0 0 18px; }
+footer ol li { margin: 6px 0; }
+footer a { color: var(--wc); }
+</style>
+</head>
+<body>
+
+<nav style="position:sticky;top:0;z-index:100;background:rgba(250,247,242,0.96);backdrop-filter:blur(8px);border-bottom:1px solid #E5DFD3;padding:0.7rem 1.5rem;display:flex;align-items:center;justify-content:space-between;font-family:'Inter',sans-serif;">
+  <a href="/urban-productivity/" style="font-size:0.78rem;font-weight:600;color:#6B1F00;text-decoration:none;letter-spacing:0.06em;">← Urban Productivity Series</a>
+  <div style="display:flex;gap:1rem;align-items:center;">
+    <a href="by-the-acre.html" style="font-size:0.75rem;color:#7A7A7A;text-decoration:none;">Metro Analysis</a>
+    <a href="dashboard.html" style="font-size:0.75rem;font-weight:600;color:#6B1F00;text-decoration:none;border:1px solid rgba(107,31,0,0.4);border-radius:20px;padding:0.22rem 0.7rem;">Dashboard →</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="kicker">Charleston, South Carolina · A Property Productivity Analysis</div>
+    <h1>The walled city <em>still pays.</em><br/>And the strip mall doesn't.</h1>
+    <p class="lede">A side-by-side analysis of three patches of Charleston — the original 1704 walled city, the historic Cannonborough-Elliotborough neighborhood, and a same-size chunk of Savannah Highway in West Ashley. All three under the same City of Charleston tax structure. Per acre, the older patterns out-earn the modern suburban one by an order of magnitude. The headline is <strong>$334,000 versus $18,000 per acre</strong>.</p>
+    <p class="byline">By Jimmy Ardis · Carolina Redesign · May 2026. A 21st-century revisit of an analysis first done by hand twenty years ago.</p>
+  </header>
+</div>
+
+<div class="wrap">
+  <article>
+
+    <div class="compare-hero">
+      <div class="col">
+        <div class="tag tag-wc">Walled City · 1704</div>
+        <div class="name">Original Charleston</div>
+        <div class="sub">Meeting–Cumberland–East Bay–Water · 831 parcels in 73.6 acres</div>
+        <div class="big wc tnum">$334K</div>
+        <div class="big-l">Tax / acre / year</div>
+      </div>
+      <div class="col">
+        <div class="tag tag-ce">Cannonborough-Elliotborough</div>
+        <div class="name">Historic borough</div>
+        <div class="sub">Septima Clark–Meeting–Bee–President · 927 parcels in 194.1 acres</div>
+        <div class="big ce tnum">$129K</div>
+        <div class="big-l">Tax / acre / year</div>
+      </div>
+      <div class="col">
+        <div class="tag tag-wa">Savannah Hwy · West Ashley</div>
+        <div class="name">Modern suburban</div>
+        <div class="sub">Auto-row + adjacent residential · 177 parcels in 69.5 acres</div>
+        <div class="big wa tnum">$18K</div>
+        <div class="big-l">Tax / acre / year</div>
+      </div>
+    </div>
+
+    <p>About twenty years ago, before the AI tools that make this kind of work easy, I copy-pasted thousands of Charleston property records into a spreadsheet by hand, one cell at a time. The question driving that work was simple but unfashionable: the dense, mixed-use, organic-grid pattern of the original American city is not just more beautiful than what came after. It also pays its bills. Joe Minicozzi at Urban3 and Chuck Marohn at Strong Towns have spent the intervening decades documenting that the most economically productive land in almost any American city — measured in property-tax dollars per acre — is almost always the oldest, densest, most walkable part. The part that pre-dates the zoning codes that make it illegal to build anything like it today.</p>
+
+    <p>Charleston is one of the cleanest natural experiments in the country for this claim. This analysis tests it directly with three areas: the original 1704 walled city, defined by the modern street rectangle of Meeting, Cumberland, East Bay, and Water; the Cannonborough-Elliotborough (CENA) borough that grew up just north of the walls in the 19th century; and a same-size chunk of Savannah Highway suburban arterial in West Ashley. All three are inside the City of Charleston, all three governed by the same 313.6 mills and the same 4%/6% South Carolina assessment ratios. The only thing that differs is the pattern of development.</p>
+
+    <p class="pull">Same city. Same tax rate. The walled city produces 18× more property tax per acre than its modern suburban counterpart. CENA, the borough next door, produces 7× more.</p>
+
+    <h2>The headline numbers, head to head</h2>
+
+    <div class="compare-bar-row">
+      <div class="lbl">Walled City</div>
+      <div class="track"><div class="fill-wc" style="width: 100%"></div></div>
+      <div class="val" style="color: var(--wc)">$334K / ac</div>
+    </div>
+    <div class="compare-bar-row">
+      <div class="lbl">Cannonborough-Elliotborough</div>
+      <div class="track"><div class="fill-ce" style="width: 38.6%"></div></div>
+      <div class="val" style="color: var(--ce)">$129K / ac</div>
+    </div>
+    <div class="compare-bar-row">
+      <div class="lbl">Savannah Hwy strip</div>
+      <div class="track"><div class="fill-wa" style="width: 5.4%"></div></div>
+      <div class="val" style="color: var(--wa)">$18K / ac</div>
+    </div>
+
+    <p style="margin-top: 28px;">Pre-zoning Charleston (the Walled City plus CENA, together 268 acres) carries <strong>$2.94B</strong> in appraised value and produces <strong>$49.57M</strong> in annual property tax. Post-zoning Charleston (the Savannah Highway chunk, 70 acres) carries <strong>$72.91M</strong> and produces <strong>$1.26M</strong>. The walled city alone, on roughly the same footprint as the Savannah Highway analysis area, generates <strong>19× more tax revenue</strong>.</p>
+
+    <h2>What the walled city actually contains</h2>
+
+    <p>Vince Graham's older slide on the walled city tallied the contents as roughly <strong>720 homes</strong> — single-family, rowhouses, condominium flats, duplexes, apartments, carriage houses, triplexes — plus <strong>789,000 square feet of commercial space</strong> (food stores, banks, art galleries, inns, restaurants, law offices, professional services) plus <strong>six museums, six cemeteries, City Hall, five churches, two arts theaters, and a 450-student private school</strong>. More than 2,000,000 square feet of total floor area on 62 acres, with homes routinely selling above $1,000 per square foot. The number of distinct, finely-grained, mixed uses in those 62 acres is larger than what most modern American cities permit on any acre at all.</p>
+
+    <aside class="callout warm">
+      <h3>A note on the boundary</h3>
+      <p>The first draft of this analysis used a polygon anchored to the four documented bastion corners of the original wall. Vince Graham pointed out that the modern, conventionally-used framing of the walled city is the rectangle bounded by <strong>Meeting Street (west), Cumberland Street (north), East Bay Street (east), and Water Street (south)</strong>. That's the polygon used here, derived from the centroids of parcels addressed on each of those four streets. The polygon is 73.7 acres of modern street-bounded area; historical inscriptions on the 1721 Herbert plan give the original enclosed area as 62 acres. The difference is street right-of-way that has been added or widened over three centuries.</p>
+    </aside>
+
+    <h2>Civic land: the part that pays no tax at all</h2>
+
+    <p>One thing the data reveals clearly: the walled city carries a large share of civic and tax-exempt land. Five churches, two cemeteries (one with no assessment), four museums, two government buildings, religious institutions, and others — together <strong>10.7 acres (14% of the walled city polygon)</strong> — pay zero property tax. The buildings on these parcels are some of the most architecturally significant in Charleston and were what made the city famous to begin with: St. Michael's, the Powder Magazine, the Old Exchange, the College of Charleston's footprint.</p>
+
+    <p>This matters in two ways. First, the headline tax-per-acre figure ($334K/ac) is calculated against the <em>full</em> walled-city polygon, including all the civic land. When you exclude civic / tax-exempt parcels and only count the 43.3 acres of actually-taxable land in the walled city, the productivity climbs to <strong>$550K per taxable acre per year</strong>. The walled city subsidizes its own civic infrastructure and then some.</p>
+
+    <p>Second, the fact that any modern suburban area is being held up against a district that gives away 14% of its land to non-revenue civic use, and still beats it by an order of magnitude per acre, tells you something about which pattern of land use is more financially robust.</p>
+
+    <div class="chart-block">
+      <h3>Where the civic land is</h3>
+      <p class="sub">Tax-exempt civic parcels inside the walled city polygon</p>
+      <table class="data">
+        <thead><tr><th>Use category</th><th class="r"># parcels</th><th class="r">Acres</th></tr></thead>
+        <tbody><tr><td>SPCLTY-HTL</td><td class="r tnum">63</td><td class="r tnum">36.35</td></tr><tr><td>RELIGIOUS</td><td class="r tnum">9</td><td class="r tnum">7.10</td></tr><tr><td>MUSEUM-CULT</td><td class="r tnum">8</td><td class="r tnum">1.61</td></tr><tr><td>GOVT-BLDG</td><td class="r tnum">1</td><td class="r tnum">1.11</td></tr><tr><td>SPCLTY-WHS</td><td class="r tnum">2</td><td class="r tnum">0.15</td></tr><tr><td>SPCLTY-OFC</td><td class="r tnum">1</td><td class="r tnum">0.09</td></tr></tbody>
+      </table>
+    </div>
+
+    <h2>Streets, intersections, and what Vince calls "vincity"</h2>
+
+    <p>The economic argument has a structural twin: the older patterns are more <em>connected</em> than the newer one. A dense network of small streets diffuses traffic across many paths; a dendritic network of cul-de-sacs feeding to a single arterial concentrates it. Vince has long noted what he calls "vincity" — intersections per acre — as the cleanest measure of this. More intersections per acre means more route choices, slower average car speeds, more places to interact on foot, more value-creating frontage exposed to pedestrian traffic.</p>
+
+    <p>The intersection counts here come from OpenStreetMap, restricted to drivable named roads (so this excludes alleys and service drives, both of which Charleston has plenty of). Even on this conservative basis, the difference is clear: the walled city has <strong>0.37 intersections per acre</strong>, CENA has <strong>0.41</strong>, and the Savannah Highway suburban corridor has <strong>0.23</strong>. Vince's 1844 reconstructed map of the walled city, which includes the alley network, counts 37 intersections in 62 acres or 0.60 per acre — meaningfully higher than what's visible in modern OSM data, suggesting the loss of historic alleys over the last 150 years. The structural pattern, even partially preserved, still beats the modern arterial pattern by roughly 60% on this measure.</p>
+
+    <h2>Use mix, three patterns side by side</h2>
+
+    <p>Both the walled city and CENA are predominantly residential by acreage, with finely-grained commercial, institutional, and specialty uses woven throughout. The Savannah Highway strip looks "more mixed" by share — only 55% residential, 19% commercial — but the parcels are bigger, buildings sit further apart, and parking is the visible spine of the place. Mixed use, in this case, doesn't mean the same thing.</p>
+
+    <div class="chart-block">
+      <h3>Use mix by area</h3>
+      <p class="sub">Share of each area's parcel acreage, grouped by class-code category</p>
+      <div class="chart-body" id="chartUse"></div>
+    </div>
+
+    <h2>Where the value is leaking</h2>
+
+    <p>The land-to-improvement ratio tells the structural story. In the walled city, the land is worth <strong>35%</strong> of total appraised value and the buildings are worth the rest. In CENA, the split is <strong>48% / 52%</strong>. On the Savannah Highway strip, it's <strong>50% / 50%</strong>. Nearly half the value out there is in the dirt. That's the Urban3 "Detroit problem" in early form: when most of an acre is parking, the buildings stop carrying their weight.</p>
+
+    <div class="chart-block">
+      <h3>Tax revenue per acre, distribution</h3>
+      <p class="sub">Where each area's parcels fall on the tax-per-acre productivity axis. Log scale. Walled City median = $293K, CENA median = $225K, West Ashley median = $22K.</p>
+      <div class="chart-body" id="chartTPA"></div>
+    </div>
+
+    <h2>The most productive parcels in each area</h2>
+
+    <p>What each pattern actually rewards, top to bottom. The walled city's top performers are dense urban-core mixed-use buildings on small lots. CENA's top performers look similar — fine-grained commercial along Spring/Cannon/King with smaller residential parcels surrounding. The Savannah Highway strip's top performers are the rare parcels where the building actually does the work — the hotel, the high-revenue retail box — rather than the dealerships and surface lots that dominate by acreage.</p>
+
+    <div class="three-tables">
+      <div>
+        <h4><span class="tag tag-wc">Walled City</span></h4>
+        <table class="data">
+          <thead><tr><th>Address</th><th>Use</th><th class="r">Ac</th><th class="r">Appr</th><th class="r">$/ac</th></tr></thead>
+          <tbody><tr><td>84 CHURCH ST</td><td class="t">RESID-ROW</td><td class="r tnum">0.008</td><td class="r tnum">$1.25M</td><td class="r tnum"><b>$2.86M</b></td></tr><tr><td>64 TRADD ST</td><td class="t">RESID-ROW</td><td class="r tnum">0.061</td><td class="r tnum">$6.72M</td><td class="r tnum"><b>$2.07M</b></td></tr><tr><td>16 CHALMERS ST</td><td class="t">RESID-SFR</td><td class="r tnum">0.013</td><td class="r tnum">$1.46M</td><td class="r tnum"><b>$2.06M</b></td></tr><tr><td>37 STATE ST</td><td class="t">RESID-ROW</td><td class="r tnum">0.023</td><td class="r tnum">$2.40M</td><td class="r tnum"><b>$1.98M</b></td></tr><tr><td>16 TRADD ST</td><td class="t">RESID-ROW</td><td class="r tnum">0.020</td><td class="r tnum">$2.09M</td><td class="r tnum"><b>$1.92M</b></td></tr></tbody>
+        </table>
+      </div>
+      <div>
+        <h4><span class="tag tag-ce">CENA</span></h4>
+        <table class="data">
+          <thead><tr><th>Address</th><th>Use</th><th class="r">Ac</th><th class="r">Appr</th><th class="r">$/ac</th></tr></thead>
+          <tbody><tr><td>28 WOOLFE ST</td><td class="t">SPCLTY-APT</td><td class="r tnum">0.698</td><td class="r tnum">$75.70M</td><td class="r tnum"><b>$2.04M</b></td></tr><tr><td>14 CATFIDDLE ST</td><td class="t">RESID-SFR</td><td class="r tnum">0.011</td><td class="r tnum">$1.01M</td><td class="r tnum"><b>$1.73M</b></td></tr><tr><td>595 KING ST</td><td class="t">SPCLTY-APT</td><td class="r tnum">0.601</td><td class="r tnum">$52.82M</td><td class="r tnum"><b>$1.65M</b></td></tr><tr><td>4 CATFIDDLE ST</td><td class="t">RESID-TWH</td><td class="r tnum">0.012</td><td class="r tnum">$954K</td><td class="r tnum"><b>$1.49M</b></td></tr><tr><td>45 CANNON ST</td><td class="t">RESID-DUP/TRI</td><td class="r tnum">0.018</td><td class="r tnum">$1.41M</td><td class="r tnum"><b>$1.46M</b></td></tr></tbody>
+        </table>
+      </div>
+      <div>
+        <h4><span class="tag tag-wa">Savannah Hwy</span></h4>
+        <table class="data">
+          <thead><tr><th>Address</th><th>Use</th><th class="r">Ac</th><th class="r">Appr</th><th class="r">$/ac</th></tr></thead>
+          <tbody><tr><td>1549 EVERGREEN ST</td><td class="t">RESID-TWH</td><td class="r tnum">0.055</td><td class="r tnum">$400K</td><td class="r tnum"><b>$137K</b></td></tr><tr><td>1551 EVERGREEN ST</td><td class="t">RESID-TWH</td><td class="r tnum">0.072</td><td class="r tnum">$401K</td><td class="r tnum"><b>$105K</b></td></tr><tr><td>708 YEW ST</td><td class="t">SPCLTY-SMA</td><td class="r tnum">0.183</td><td class="r tnum">$754K</td><td class="r tnum"><b>$77K</b></td></tr><tr><td>1547 EVERGREEN ST</td><td class="t">RESID-TWH</td><td class="r tnum">0.072</td><td class="r tnum">$401K</td><td class="r tnum"><b>$70K</b></td></tr><tr><td>1552 EVERGREEN ST</td><td class="t">SPCLTY-SMA</td><td class="r tnum">0.220</td><td class="r tnum">$708K</td><td class="r tnum"><b>$60K</b></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <h2>A historical aside</h2>
+
+    <p>The walled city was demolished beginning in 1717, but the pattern persisted. By the first U.S. Census in 1790, Charleston covered approximately 400 acres and was the <strong>fourth-largest city in the United States</strong>, with 16,359 residents — behind only New York, Philadelphia, and Boston. By 1844, the walled-city footprint had been knit even tighter: a reconstructed map of that year counts 37 intersections in 62 acres. Three centuries later, those same 62 to 73 acres of taxable parcels still carry $1.5 billion in appraised value and produce $24 million in annual property tax. The math suggests that whatever Charleston's 18th-century planners were doing, they were not building a financially marginal city.</p>
+
+    <aside class="callout">
+      <h3>What this analysis is not</h3>
+      <p>Each polygon is a representative slice, not a comprehensive census. The walled-city polygon follows modern street centerlines and is slightly larger than the historic 62-acre wall enclosure (because modern streets have been widened over three centuries). The CENA polygon is a rectangle approximating the irregular Bee/Morris/Mary southern boundary, and includes a portion of the Septima Clark Parkway right-of-way, which inflates the apparent "street" share of CENA's land. The Savannah Highway polygon is one representative chunk; the analysis pipeline can swap in a different suburban area (Mt. Pleasant, James Island, or a Walmart-anchored district) and the per-acre productivity remains in the same order of magnitude. Tax estimates assume 313.6 mills and the standard 4%/6% SC ratio; historic-preservation easements and conservation easements would reduce the walled-city figure modestly. None of those adjustments change the order-of-magnitude conclusion.</p>
+    </aside>
+
+    <h2>The implication</h2>
+
+    <p>No modern zoning code in America permits the development pattern of the walled city. Parking minimums could not have produced the parcels along Tradd or Church Street. Setback rules could not permit 51 East Bay. Single-family-only districts could not allow a hardware store next to a row house next to a hotel next to a museum. Yet that is the pattern that produced $334,000 per acre per year of municipal revenue, and it is the pattern that the Savannah Highway corridor — built strictly to the code that replaced this pattern — fails to match by a factor of 18. The argument is no longer aesthetic. It is fiscal arithmetic.</p>
+
+    <h2>The companion data</h2>
+
+    <p>Every parcel summarized in this report is available to explore in the companion interactive dashboard. Filter by area (Walled City, CENA, West Ashley, or all), filter by use type, include or exclude civic / tax-exempt parcels, and recolor the map by per-acre tax, per-acre value, owner-occupied status, or civic exemption. Click any parcel for its full assessor record. The full 1,935-parcel spreadsheet, the boundary polygons, the methodology, and every step of the pipeline are also downloadable.</p>
+
+    <div class="companion-grid">
+      <a href="slides.html" class="cta-dashboard slides">
+        <span class="cta-eyebrow">Slide deck</span>
+        <span class="cta-title">The 14-slide visual summary<span class="cta-arrow"> →</span></span>
+        <span class="cta-sub">A walkthrough designed for screen sharing or projection — the argument distilled to its sharpest form.</span>
+      </a>
+      <a href="dashboard.html" class="cta-dashboard">
+        <span class="cta-eyebrow">Interactive dashboard</span>
+        <span class="cta-title">Explore every parcel<span class="cta-arrow"> →</span></span>
+        <span class="cta-sub">1,935 parcels across the Walled City, CENA, and the Savannah Hwy strip — mapped, filterable, and downloadable.</span>
+      </a>
+    </div>
+
+    <h2>Methodology, briefly</h2>
+
+    <p>Each area's polygon was constructed from documented street centerline references. The walled-city polygon was derived from the centroids of parcels addressed on Meeting, Cumberland, East Bay, and Water Streets in the Charleston County GIS. The CENA polygon approximates the boundaries described in the 2022 Cannonborough-Elliotborough Two Boroughs Improvement Committee "Taking Stock" report. The Savannah Highway polygon is a representative rectangle of the auto-row commercial corridor plus adjacent residential.</p>
+
+    <p>Parcels were pulled in a single spatial-intersect query against Charleston County's <code style="font-family: 'JetBrains Mono', monospace; font-size: 15px; background: var(--line); padding: 1px 6px; border-radius: 3px;">CDC_ParcelMap</code> ArcGIS REST service. Only parcels with centroid inside the polygon were retained. For the land breakdowns, Shapely's <code>unary_union</code> was used to deduplicate condo parcels (which in Charleston County GIS each carry the full building footprint as their geometry, so summing ACRES_CAL would overcount by a factor equal to the unit count).</p>
+
+    <p>Property tax is estimated parcel-by-parcel as <span class="tnum">Appraised × Ratio × 313.6 ÷ 1000 − LOST credit</span>, where Ratio is 4% for Legal Residence = Y parcels and 6% otherwise. The LOST (Local Option Sales Tax) credit applies as 0.00090 × the taxable amount. Civic and tax-exempt parcels are identified by class code (670–720 series: government, schools, religious, museums; 451: road right-of-way) and excluded from taxable-acre calculations. Intersection counts come from OpenStreetMap via the Overpass API, restricted to drivable named highway types (primary, secondary, tertiary, residential, unclassified, trunk, motorway, and link variants). Pedestrian-only paths, service roads, and unnamed alleys are excluded from the count.</p>
+
+  </article>
+</div>
+
+<div class="wide">
+  <footer>
+    <div style="margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--line);">
+      <div style="font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 4px;">Jimmy Ardis · Carolina Redesign</div>
+      <div>Charleston, South Carolina · May 2026</div>
+    </div>
+    <h4>Sources & method</h4>
+    <ol>
+      <li>Charleston County CDC_ParcelMap, ArcGIS REST service. Data pulled May 2026.</li>
+      <li>Charleston County Auditor 2024 Millage Card. City of Charleston combined millage (TD 63 and TD 71) = 313.6 mills (89.8 city + 223.8 countywide).</li>
+      <li>South Carolina Code Ann. § 12-43-220 (assessment ratios: 4% owner-occupied, 6% other).</li>
+      <li>Cannonborough-Elliotborough Neighborhood Association. "Two Boroughs Improvement Committee: Taking Stock." September 2022.</li>
+      <li>OpenStreetMap, via Overpass API. Drivable named highway types only. © OpenStreetMap contributors.</li>
+      <li>Minicozzi, Joseph. Urban3 / Strong Towns property-tax-per-acre framework. <a href="https://www.strongtowns.org/the-growth-ponzi-scheme" target="_blank" rel="noopener noreferrer">strongtowns.org</a></li>
+      <li>Butler, Nic. "Creating a Walled City: The Charleston Enceinte of 1704." Charleston Time Machine, Ep. 230, April 22, 2022. <a href="https://www.ccpl.org/charleston-time-machine/creating-walled-city-charleston-enceinte-1704" target="_blank" rel="noopener noreferrer">ccpl.org</a> (historical context).</li>
+      <li>HALS SC-24, "Charleston Walled City." Library of Congress. <a href="https://www.loc.gov/item/sc1237/" target="_blank" rel="noopener noreferrer">loc.gov/item/sc1237</a> (historical context).</li>
+    </ol>
+  </footer>
+</div>
+
+<script>
+const USE_BARS = [{"group": "Residential", "wc": 36.9, "ce": 58.7, "wa": 55.0}, {"group": "Commercial", "wc": 6.2, "ce": 10.7, "wa": 18.7}, {"group": "Specialty / condo", "wc": 14.5, "ce": 8.7, "wa": 9.0}, {"group": "Parking / ROW", "wc": 9.3, "ce": 3.1, "wa": 0.5}, {"group": "Institutional / Civic", "wc": 24.7, "ce": 6.7, "wa": 9.0}, {"group": "Vacant / Other", "wc": 1.3, "ce": 8.5, "wa": 5.5}, {"group": "Office / Specialty", "wc": 7.1, "ce": 3.6, "wa": 2.4}];
+const HIST = {"edges": [9.279732827579156, 14.141668262791626, 21.550920158012723, 32.842105402729636, 50.049087434578674, 76.27133286119675, 116.23221350494241, 177.12981993961867, 269.93354222328054, 411.35996887506604, 626.8840196707539, 955.3277028711451, 1455.8530625049143, 2218.618944300433, 3381.021166751269, 5152.441413784366, 7851.962828138443, 11965.845955962985, 18235.118094131558, 27789.053371627197, 42348.58712210169, 64536.30525857758, 98348.84654875846, 149876.8108697338, 228401.84938361667, 348068.5537617816, 530432.299233863, 808341.9804222942, 1231857.031060909, 1877264.5510523105, 2860820.7817773814], "wc": [0.53, 0.0, 0.0, 0.0, 0.0, 0.27, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.13, 0.0, 0.27, 3.34, 8.16, 3.48, 1.47, 4.41, 7.35, 4.41, 4.41, 5.88, 9.89, 15.11, 16.71, 8.82, 4.68, 0.67], "ce": [0.12, 0.0, 0.12, 0.12, 0.0, 0.0, 0.0, 0.12, 0.0, 0.0, 0.0, 0.12, 0.0, 0.72, 0.0, 0.36, 1.31, 1.55, 2.27, 6.93, 3.46, 5.97, 9.8, 17.92, 21.62, 18.16, 6.33, 2.27, 0.6, 0.12], "wa": [0.0, 0.0, 0.68, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.68, 0.0, 0.0, 15.07, 18.49, 30.14, 21.23, 10.27, 2.05, 1.37, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]};
+
+const useChart = echarts.init(document.getElementById('chartUse'));
+useChart.setOption({
+  grid: { left: 130, right: 50, top: 36, bottom: 32 },
+  legend: {
+    data: ['Walled City','CENA','Savannah Hwy'],
+    top: 4, left: 130,
+    textStyle: { fontSize: 12, color: '#404040', fontFamily: 'Inter' }
+  },
+  tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+  xAxis: {
+    type: 'value',
+    axisLabel: { fontSize: 10, color: '#7A7A7A', formatter: '{value}%' },
+    axisLine: { lineStyle: { color: '#E5DFD3' } },
+    splitLine: { lineStyle: { color: '#F1ECDF' } }
+  },
+  yAxis: {
+    type: 'category',
+    data: USE_BARS.map(b => b.group),
+    axisLabel: { fontSize: 11, color: '#404040', fontFamily: 'Inter' },
+    axisLine: { lineStyle: { color: '#E5DFD3' } },
+    axisTick: { show: false }
+  },
+  series: [
+    { name: 'Walled City', type: 'bar', barGap: '10%', barCategoryGap: '38%',
+       data: USE_BARS.map(b => b.wc), itemStyle: { color: '#6B1F00' } },
+    { name: 'CENA', type: 'bar',
+       data: USE_BARS.map(b => b.ce), itemStyle: { color: '#5D6B4F' } },
+    { name: 'Savannah Hwy', type: 'bar',
+       data: USE_BARS.map(b => b.wa), itemStyle: { color: '#445B7A' } }
+  ]
+});
+window.addEventListener('resize', () => useChart.resize());
+
+const tpaChart = echarts.init(document.getElementById('chartTPA'));
+tpaChart.setOption({
+  grid: { left: 44, right: 16, top: 36, bottom: 36 },
+  legend: { data: ['Walled City', 'CENA', 'Savannah Hwy'], top: 4,
+    textStyle: { fontSize: 12, color: '#404040', fontFamily: 'Inter' } },
+  tooltip: { trigger: 'axis' },
+  xAxis: {
+    type: 'category',
+    data: HIST.edges.slice(0, HIST.wc.length).map(v => v >= 1e6 ? '$' + (v/1e6).toFixed(1)+'M' : '$' + (v/1e3).toFixed(0)+'K'),
+    axisLabel: { fontSize: 10, color: '#7A7A7A', interval: 4 },
+    axisLine: { lineStyle: { color: '#E5DFD3' } },
+    axisTick: { show: false }
+  },
+  yAxis: {
+    type: 'value', name: '% of parcels',
+    nameTextStyle: { fontSize: 10, color: '#7A7A7A', fontFamily: 'Inter' },
+    axisLabel: { fontSize: 10, color: '#7A7A7A', formatter: '{value}%' },
+    splitLine: { lineStyle: { color: '#F1ECDF' } }
+  },
+  series: [
+    { name: 'Walled City', type: 'bar', data: HIST.wc, itemStyle: { color: '#6B1F00', opacity: 0.78 } },
+    { name: 'CENA', type: 'bar', data: HIST.ce, itemStyle: { color: '#5D6B4F', opacity: 0.78 } },
+    { name: 'Savannah Hwy', type: 'bar', data: HIST.wa, itemStyle: { color: '#445B7A', opacity: 0.78 } }
+  ]
+});
+window.addEventListener('resize', () => tpaChart.resize());
+</script>
+
+</body>
+</html>

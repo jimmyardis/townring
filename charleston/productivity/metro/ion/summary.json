@@ -1,0 +1,19 @@
+{
+  "areas": {
+    "I'On": {
+      "n": 258,
+      "n_oo": 220,
+      "n_civic": 0,
+      "polygon_acres": 145.91846575,
+      "appr": 230269733.0,
+      "tax": 2235542.9794399985,
+      "land": 124673820.0,
+      "vpa": 1578071.2318790264,
+      "tpa": 15320.494002932583,
+      "land_pct": 54.14251294589376
+    }
+  },
+  "ratio_oo": 0.04,
+  "ratio_other": 0.06,
+  "note": "Tri-county metro analysis. Charleston County via CDC_ParcelMap REST; Berkeley via Parcel Lines (layer 4); Dorchester not included for tax math due to lack of appraisal data in public REST. Daniel Island taxed at Charleston city rate (annexed). I'On and Park West derived from Mt. Pleasant parcel filter by subdivision/legal_descr name match."
+}

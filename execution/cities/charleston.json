@@ -1,0 +1,13 @@
+{
+  "city": "Charleston",
+  "state": "SC",
+  "county": "Charleston",
+  "fips_state": "45",
+  "fips_county": "019",
+  "center_lng": -79.9399,
+  "center_lat": 32.7765,
+  "millage_city": 313.6,
+  "lost_rate": 0.0009,
+  "scdot_endpoint": "https://services1.arcgis.com/Ggfx9HbEQeJtfGXG/arcgis/rest/services/CDC_ParcelMap/FeatureServer/0/query",
+  "notes": "Charleston County only. Berkeley County (Daniel Island, Cainhoy) uses separate Berkeley endpoint with flat 6% ratio. Dorchester REST lacks appraised values — excluded."
+}

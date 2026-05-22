@@ -1,0 +1,42 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Savannah Highway suburban corridor",
+        "short": "West Ashley",
+        "approx_acreage": 69,
+        "tax_district": "TD 63 - City of Charleston West Ashley",
+        "description": "Representative suburban commercial corridor (Savannah Hwy auto-oriented retail + adjacent residential)"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -80.0155,
+              32.787
+            ],
+            [
+              -80.0095,
+              32.787
+            ],
+            [
+              -80.0095,
+              32.7915
+            ],
+            [
+              -80.0155,
+              32.7915
+            ],
+            [
+              -80.0155,
+              32.787
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

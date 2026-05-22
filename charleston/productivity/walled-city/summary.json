@@ -1,0 +1,34 @@
+{
+  "areas": {
+    "Walled City": {
+      "name": "The Walled City (1704 footprint)",
+      "short": "Walled City",
+      "color": "#6B1F00",
+      "description": "Original 1704 enceinte, bounded by Meeting, Cumberland, East Bay, and Water Streets",
+      "n": 831,
+      "n_oo": 229,
+      "n_civic": 84,
+      "polygon_acres": 73.6479648959441,
+      "parcel_land_acres": 53.948333433937606,
+      "civic_land_acres": 10.65411033294135,
+      "taxable_land_acres": 43.294223100996255,
+      "row_acres": 19.699631462006494,
+      "row_pct": 26.748371784393164,
+      "appr": 1535843603,
+      "land": 540033510,
+      "imp": 995810093,
+      "tax": 24574638.77823399,
+      "taxable_appr": 1495916803,
+      "taxable_tax": 23825532.15663398,
+      "vpa": 20853849.867677487,
+      "tpa": 333677.0922720684,
+      "vpa_taxable": 34552341.995151244,
+      "tpa_taxable": 550316.6577456318,
+      "land_pct": 35.16201187055372
+    }
+  },
+  "millage": 313.6,
+  "ratio_oo": 0.04,
+  "ratio_other": 0.06,
+  "lost_rate": 0.0009
+}

@@ -1,0 +1,19 @@
+{
+  "areas": {
+    "Folly Beach": {
+      "n": 2944,
+      "n_oo": 858,
+      "n_civic": 19,
+      "polygon_acres": 12083.067539177286,
+      "appr": 2930100015.0,
+      "tax": 34221877.99422008,
+      "land": 1491743448.0,
+      "vpa": 242496.369858039,
+      "tpa": 2832.2177198183717,
+      "land_pct": 50.91100782783348
+    }
+  },
+  "ratio_oo": 0.04,
+  "ratio_other": 0.06,
+  "note": "Tri-county metro analysis. Charleston County via CDC_ParcelMap REST; Berkeley via Parcel Lines (layer 4); Dorchester not included for tax math due to lack of appraisal data in public REST. Daniel Island taxed at Charleston city rate (annexed). I'On and Park West derived from Mt. Pleasant parcel filter by subdivision/legal_descr name match."
+}
