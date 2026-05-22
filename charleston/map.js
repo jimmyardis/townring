@@ -8,7 +8,7 @@
 // =============================================================
 // 1. MAPBOX TOKEN
 // =============================================================
-mapboxgl.accessToken = 'PASTE_MAPBOX_TOKEN_HERE';
+mapboxgl.accessToken = 'pk.eyJ1IjoiamltbXlhcmRpcyIsImEiOiJjbW95cDhiOWEwZGNwMnNxNjU5MnNybGdzIn0.kXOm1Xhn4MGll3Z9PNqmbA';
 
 // =============================================================
 // 2. CHARLESTON CONSTANTS
