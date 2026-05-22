@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Charleston Map &mdash; TownRing</title>
+
+  <!-- Mapbox GL JS v3 -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.js"></script>
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="map"></div>
+
+  <!-- Header card (top-left) -->
+  <header class="overlay">
+    <a href="/" class="back-link">&#8592; TownRing</a>
+    <h1>The Charleston Map</h1>
+    <p class="subtitle">A voice-driven portrait of Charleston, South Carolina</p>
+    <p class="phase-tag">Charleston &middot; Berkeley &middot; Dorchester Counties</p>
+  </header>
+
+  <!-- Control buttons (top-right) -->
+  <div class="controls">
+    <button id="resetView" title="Return to default view">Reset view</button>
+    <button id="toggle3D" title="Toggle 3D perspective">Toggle 3D</button>
+    <button id="cycleLight" title="Cycle lighting">Lighting: day</button>
+    <button id="toggleCensus" title="Show/hide census layer">Hide Census</button>
+    <button id="togglePlaces" title="Show/hide place boundaries">Hide Places</button>
+    <button id="toggleCinematic" title="Cinematic focus mode">Cinematic</button>
+  </div>
+
+  <!-- Metric selector (below controls) -->
+  <div class="metric-selector">
+    <label class="metric-label" for="metricSelect">Data layer</label>
+    <select id="metricSelect"></select>
+  </div>
+
+  <!-- Year slider (hidden unless metric is year-aware) -->
+  <div class="year-slider-wrap" id="yearSliderWrap" style="display:none;">
+    <label class="year-label" id="yearLabel">Year: 2022</label>
+    <input type="range" id="yearSlider" min="2014" max="2022" step="1" value="2022">
+    <div class="year-range"><span>2014</span><span>2022</span></div>
+  </div>
+
+  <!-- Legend (bottom-right) -->
+  <div id="legend" class="legend">
+    <div class="legend-title" id="legendTitle">Population growth, 2010 &rarr; 2020</div>
+    <div class="legend-bar">
+      <div class="legend-gradient" id="legendGradient"></div>
+    </div>
+    <div class="legend-labels" id="legendLabels"></div>
+    <div class="legend-extra" id="legendNull" style="display:none;">
+      <span class="swatch null-swatch"></span>
+      <span id="legendNullLabel">No data</span>
+    </div>
+    <div id="legendPlaces">
+      <div class="legend-section-divider"></div>
+      <div class="legend-section-title">Places</div>
+      <div class="legend-extra">
+        <span class="legend-line solid"></span>
+        <span>Town / CDP boundary</span>
+      </div>
+      <div class="legend-extra">
+        <span class="legend-dot"></span>
+        <span>Colloquial place</span>
+      </div>
+    </div>
+    <div class="legend-source">
+      Census Bureau, ACS 5-year + Decennial 2010/2020.<br>
+      Charleston, Berkeley &amp; Dorchester Counties, SC.
+    </div>
+  </div>
+
+  <!-- Voice agent cluster (bottom-center) -->
+  <div class="voice-cluster">
+    <div id="transcript" class="transcript"></div>
+    <div id="voiceStatus" class="voice-status"></div>
+    <button id="voiceBtn" class="voice-btn" title="Talk to the Charleston Map">
+      <svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.31 6-6.72h-1.7z"/>
+      </svg>
+      <span class="label">Talk to the Map</span>
+    </button>
+  </div>
+
+  <footer class="attribution">
+    <span>Drag to pan &middot; Right-click + drag to rotate &middot; Scroll to zoom</span>
+  </footer>
+
+  <script src="map.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/index.umd.js"></script>
+  <script src="voice.js"></script>
+</body>
+</html>

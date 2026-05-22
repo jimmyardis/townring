@@ -1,0 +1,655 @@
+/* ============================================================
+   The Charleston Map — TownRing
+   Mapbox 3D map of Charleston SC metro with Census choropleth,
+   place boundaries, voice control API, and cinematic mode.
+   Counties: Charleston (019), Berkeley (015), Dorchester (035)
+   ============================================================ */
+
+// =============================================================
+// 1. MAPBOX TOKEN
+// =============================================================
+mapboxgl.accessToken = 'PASTE_MAPBOX_TOKEN_HERE';
+
+// =============================================================
+// 2. CHARLESTON CONSTANTS
+// =============================================================
+const CHARLESTON_CENTER   = [-79.9399, 32.7765];
+const DEFAULT_ZOOM        = 10;
+const DEFAULT_PITCH       = 35;
+const DEFAULT_BEARING     = 0;
+
+// Bounding box for "Greater Charleston" fitBounds calls
+const GREATER_CHARLESTON_BOUNDS = [
+  [-80.55, 32.35],   // SW
+  [-79.55, 33.25],   // NE
+];
+
+// =============================================================
+// 3. METRICS — 6 choropleth data layers
+// =============================================================
+const METRICS = {
+  growth_pct: {
+    label: 'Population growth, 2010 → 2020',
+    property: 'growth_pct',
+    nullCheck: ['==', ['get', 'has_2010'], false],
+    nullColor: 'rgba(180,180,180,0.55)',
+    nullLabel: 'New tract since 2010',
+    stops: [[-15, '#4a4a4a'], [-5, '#888888'], [0, '#f3e8d6'], [10, '#8fc4d6'], [25, '#2a7f9e'], [50, '#0e4d6c'], [85, '#062d40']],
+    legendLabels: ['-15%', '0%', '+25%', '+85%'],
+    formatPopup: v => v == null ? 'n/a' : `${v > 0 ? '+' : ''}${parseFloat(v).toFixed(1)}%`,
+    legendGradient: 'linear-gradient(to right,#4a4a4a 0%,#888 15%,#f3e8d6 28%,#8fc4d6 50%,#2a7f9e 70%,#0e4d6c 88%,#062d40 100%)',
+  },
+  pop_2020: {
+    label: 'Population, 2020',
+    property: 'pop_2020',
+    nullCheck: ['!', ['has', 'pop_2020']],
+    nullColor: 'rgba(180,180,180,0.55)',
+    nullLabel: 'No data',
+    stops: [[0, '#fff5eb'], [1000, '#fdd0a2'], [3000, '#fd8d3c'], [6000, '#d94701'], [10000, '#7f2704']],
+    legendLabels: ['0', '1k', '3k', '6k', '10k+'],
+    formatPopup: v => v == null ? 'n/a' : Number(v).toLocaleString(),
+    legendGradient: 'linear-gradient(to right,#fff5eb,#fdd0a2,#fd8d3c,#d94701,#7f2704)',
+  },
+  pop_by_year: {
+    label: 'Population by year (ACS)',
+    isYearAware: true,
+    years: [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022],
+    defaultYear: 2022,
+    propertyTemplate: 'pop_{year}',
+    nullCheck: ['!', ['has', 'pop_2022']],
+    nullColor: 'rgba(180,180,180,0.55)',
+    nullLabel: 'No data',
+    stops: [[0, '#fff5eb'], [1000, '#fdd0a2'], [3000, '#fd8d3c'], [6000, '#d94701'], [10000, '#7f2704']],
+    legendLabels: ['0', '1k', '3k', '6k', '10k+'],
+    formatPopup: v => v == null ? 'n/a' : Number(v).toLocaleString(),
+    legendGradient: 'linear-gradient(to right,#fff5eb,#fdd0a2,#fd8d3c,#d94701,#7f2704)',
+  },
+  median_income: {
+    label: 'Median household income',
+    property: 'median_income',
+    nullCheck: ['==', ['get', 'median_income'], null],
+    nullColor: 'rgba(180,180,180,0.55)',
+    nullLabel: 'No data',
+    stops: [[0, '#f7fcf5'], [35000, '#c7e9c0'], [60000, '#74c476'], [90000, '#238b45'], [140000, '#00441b']],
+    legendLabels: ['$0', '$35k', '$60k', '$90k', '$140k+'],
+    formatPopup: v => v == null ? 'n/a' : '$' + Number(v).toLocaleString(),
+    legendGradient: 'linear-gradient(to right,#f7fcf5,#c7e9c0,#74c476,#238b45,#00441b)',
+  },
+  median_age: {
+    label: 'Median age',
+    property: 'median_age',
+    nullCheck: ['==', ['get', 'median_age'], null],
+    nullColor: 'rgba(180,180,180,0.55)',
+    nullLabel: 'No data',
+    stops: [[18, '#fcfbfd'], [28, '#dadaeb'], [38, '#9e9ac8'], [48, '#6a51a3'], [65, '#3f007d']],
+    legendLabels: ['18', '28', '38', '48', '65+'],
+    formatPopup: v => v == null ? 'n/a' : `${parseFloat(v).toFixed(1)} yrs`,
+    legendGradient: 'linear-gradient(to right,#fcfbfd,#dadaeb,#9e9ac8,#6a51a3,#3f007d)',
+  },
+  pct_nonwhite: {
+    label: 'Percent non-white',
+    property: 'pct_nonwhite',
+    nullCheck: ['==', ['get', 'pct_nonwhite'], null],
+    nullColor: 'rgba(180,180,180,0.55)',
+    nullLabel: 'No data',
+    stops: [[0, '#f7fcfd'], [20, '#ccece6'], [40, '#66c2a4'], [60, '#2ca25f'], [80, '#006d2c']],
+    legendLabels: ['0%', '20%', '40%', '60%', '80%+'],
+    formatPopup: v => v == null ? 'n/a' : `${parseFloat(v).toFixed(1)}%`,
+    legendGradient: 'linear-gradient(to right,#f7fcfd,#ccece6,#66c2a4,#2ca25f,#006d2c)',
+  },
+};
+
+// =============================================================
+// 4. FLY TARGETS — named places the voice agent can navigate to
+// =============================================================
+const FLY_TARGETS = {
+  'downtown':             { center: [-79.9399, 32.7765], zoom: 14,   pitch: 50, bearing: 15,  label: 'Downtown Charleston' },
+  'the battery':          { center: [-79.9400, 32.7686], zoom: 15,   pitch: 45, bearing: 0,   label: 'The Battery' },
+  'white point garden':   { center: [-79.9400, 32.7686], zoom: 15.5, pitch: 45, bearing: 0,   label: 'White Point Garden' },
+  'ravenel bridge':       { center: [-79.9271, 32.7984], zoom: 14.5, pitch: 55, bearing: 30,  label: 'Arthur Ravenel Jr. Bridge' },
+  'fort sumter':          { center: [-79.8747, 32.7525], zoom: 14.5, pitch: 40, bearing: 0,   label: 'Fort Sumter' },
+  'rainbow row':          { center: [-79.9359, 32.7737], zoom: 16,   pitch: 45, bearing: -10, label: 'Rainbow Row' },
+  'folly beach':          { center: [-79.9399, 32.6534], zoom: 13.5, pitch: 30, bearing: 0,   label: 'Folly Beach' },
+  "sullivan's island":    { center: [-79.8365, 32.7678], zoom: 13,   pitch: 30, bearing: 0,   label: "Sullivan's Island" },
+  'mount pleasant':       { center: [-79.8626, 32.8323], zoom: 12,   pitch: 30, bearing: 0,   label: 'Mount Pleasant' },
+  'north charleston':     { center: [-80.0000, 32.8795], zoom: 11.5, pitch: 25, bearing: 0,   label: 'North Charleston' },
+  'james island':         { center: [-79.9739, 32.7351], zoom: 12.5, pitch: 25, bearing: 0,   label: 'James Island' },
+  'johns island':         { center: [-80.0723, 32.7179], zoom: 12,   pitch: 25, bearing: 0,   label: 'Johns Island' },
+  'west ashley':          { center: [-80.0183, 32.7615], zoom: 12.5, pitch: 25, bearing: 0,   label: 'West Ashley' },
+  'summerville':          { center: [-80.1759, 33.0185], zoom: 12,   pitch: 20, bearing: 0,   label: 'Summerville' },
+  'goose creek':          { center: [-80.0323, 32.9816], zoom: 12,   pitch: 20, bearing: 0,   label: 'Goose Creek' },
+  'daniel island':        { center: [-79.9221, 32.8558], zoom: 13,   pitch: 30, bearing: 0,   label: 'Daniel Island' },
+  'isle of palms':        { center: [-79.7842, 32.7852], zoom: 13,   pitch: 25, bearing: 0,   label: 'Isle of Palms' },
+  'kiawah island':        { center: [-80.0837, 32.6076], zoom: 13,   pitch: 25, bearing: 0,   label: 'Kiawah Island' },
+  "patriots point":       { center: [-79.8978, 32.7905], zoom: 14.5, pitch: 40, bearing: 0,   label: "Patriots Point" },
+  'college of charleston':{ center: [-79.9383, 32.7752], zoom: 16,   pitch: 45, bearing: 0,   label: 'College of Charleston' },
+  'musc':                 { center: [-79.9445, 32.7832], zoom: 15.5, pitch: 40, bearing: 0,   label: 'MUSC Medical Center' },
+  'the citadel':          { center: [-79.9613, 32.8042], zoom: 15,   pitch: 40, bearing: 0,   label: 'The Citadel' },
+  'port of charleston':   { center: [-79.9233, 32.7888], zoom: 13.5, pitch: 50, bearing: 20,  label: 'Port of Charleston' },
+  'shem creek':           { center: [-79.8811, 32.7812], zoom: 14.5, pitch: 35, bearing: 0,   label: 'Shem Creek' },
+  'wadmalaw island':      { center: [-80.1637, 32.6677], zoom: 12.5, pitch: 20, bearing: 0,   label: 'Wadmalaw Island' },
+  'edisto island':        { center: [-80.3127, 32.5146], zoom: 12,   pitch: 20, bearing: 0,   label: 'Edisto Island' },
+  'cainhoy':              { center: [-79.8182, 32.8956], zoom: 12.5, pitch: 20, bearing: 0,   label: 'Cainhoy Peninsula' },
+  'moncks corner':        { center: [-80.0068, 33.1963], zoom: 12,   pitch: 20, bearing: 0,   label: 'Moncks Corner' },
+  'hanahan':              { center: [-79.9994, 32.9212], zoom: 12.5, pitch: 20, bearing: 0,   label: 'Hanahan' },
+  'ladson':               { center: [-80.1095, 32.9835], zoom: 12.5, pitch: 20, bearing: 0,   label: 'Ladson' },
+};
+
+// =============================================================
+// 5. LANDMARKS
+// =============================================================
+const LANDMARKS = [
+  { name: 'The Battery', coordinates: [-79.9400, 32.7686], description: 'Historic promenade at the southern tip of the Charleston peninsula.' },
+  { name: 'Arthur Ravenel Jr. Bridge', coordinates: [-79.9271, 32.7984], description: 'Cable-stayed bridge over the Cooper River, opened 2005. 2.7 miles long.' },
+  { name: 'Fort Sumter', coordinates: [-79.8747, 32.7525], description: 'Federally-held fort in Charleston Harbor where the Civil War began, April 12, 1861.' },
+  { name: 'Rainbow Row', coordinates: [-79.9359, 32.7737], description: 'Thirteen pastel-painted Georgian row houses — the longest such stretch in the US.' },
+  { name: 'Folly Beach', coordinates: [-79.9399, 32.6534], description: 'Barrier island 6 miles south of downtown, known as the "Edge of America."' },
+  { name: 'Patriots Point', coordinates: [-79.8978, 32.7905], description: 'Naval museum in Mount Pleasant, home to the USS Yorktown aircraft carrier.' },
+  { name: 'The Citadel', coordinates: [-79.9613, 32.8042], description: 'South Carolina\'s military college, established 1842.' },
+  { name: 'College of Charleston', coordinates: [-79.9383, 32.7752], description: 'Founded 1770 — the oldest municipal college in the United States.' },
+];
+
+// =============================================================
+// 6. DATA PATHS
+// =============================================================
+const TRACTS_PATH   = 'data/charleston-area-tracts.geojson';
+const PLACES_PATH   = 'data/charleston-places.geojson';
+const CINEMATIC_PATH = 'data/charleston-cinematic-shapes.geojson';
+
+// =============================================================
+// 7. MAP INIT
+// =============================================================
+const map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/mapbox/standard',
+  center: CHARLESTON_CENTER,
+  zoom: DEFAULT_ZOOM,
+  pitch: DEFAULT_PITCH,
+  bearing: DEFAULT_BEARING,
+  antialias: true,
+});
+
+map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'bottom-right');
+
+// =============================================================
+// 8. CHOROPLETH EXPRESSION BUILDER
+// =============================================================
+let currentMetric = 'growth_pct';
+let currentYear   = 2022;
+
+function buildFillColorExpression(metricKey, year) {
+  const m = METRICS[metricKey];
+  if (!m) return '#cccccc';
+
+  const property = m.isYearAware
+    ? m.propertyTemplate.replace('{year}', year ?? currentYear)
+    : m.property;
+
+  return [
+    'case',
+    m.nullCheck,
+    m.nullColor,
+    [
+      'interpolate', ['linear'],
+      ['coalesce', ['get', property], m.stops[0][0]],
+      ...m.stops.flat(),
+    ],
+  ];
+}
+
+function updateLegend(metricKey) {
+  const m = METRICS[metricKey];
+  if (!m) return;
+
+  document.getElementById('legendTitle').textContent = m.label;
+  document.getElementById('legendGradient').style.background = m.legendGradient;
+
+  const labelsEl = document.getElementById('legendLabels');
+  labelsEl.innerHTML = '';
+  m.legendLabels.forEach(l => {
+    const span = document.createElement('span');
+    span.textContent = l;
+    labelsEl.appendChild(span);
+  });
+
+  const nullEl = document.getElementById('legendNull');
+  if (m.nullLabel) {
+    nullEl.style.display = 'flex';
+    document.getElementById('legendNullLabel').textContent = m.nullLabel;
+  } else {
+    nullEl.style.display = 'none';
+  }
+}
+
+function setMetricLayer(metricKey, year) {
+  if (!METRICS[metricKey]) return;
+  currentMetric = metricKey;
+  if (year !== undefined) currentYear = year;
+
+  if (map.getLayer('census-fill')) {
+    map.setPaintProperty('census-fill', 'fill-color', buildFillColorExpression(metricKey, currentYear));
+  }
+  updateLegend(metricKey);
+
+  const m = METRICS[metricKey];
+  const sliderWrap = document.getElementById('yearSliderWrap');
+  if (m.isYearAware) {
+    sliderWrap.style.display = 'block';
+    const slider = document.getElementById('yearSlider');
+    slider.min = String(m.years[0]);
+    slider.max = String(m.years[m.years.length - 1]);
+    slider.value = String(currentYear);
+    document.getElementById('yearLabel').textContent = `Year: ${currentYear}`;
+  } else {
+    sliderWrap.style.display = 'none';
+  }
+}
+
+// =============================================================
+// 9. ON LOAD
+// =============================================================
+map.on('load', async () => {
+
+  // 9a. Lighting
+  try { map.setConfigProperty('basemap', 'lightPreset', 'day'); } catch (e) {}
+
+  // 9b. Cinematic shapes (hidden by default)
+  try {
+    map.addSource('charleston-cinematic', { type: 'geojson', data: CINEMATIC_PATH });
+
+    map.addLayer({
+      id: 'cinematic-mask',
+      type: 'fill',
+      source: 'charleston-cinematic',
+      filter: ['==', ['get', 'kind'], 'inverted_mask'],
+      slot: 'top',
+      paint: { 'fill-color': '#000000', 'fill-opacity': 0.55 },
+      layout: { visibility: 'none' },
+    });
+
+    map.addLayer({
+      id: 'cinematic-boundary',
+      type: 'line',
+      source: 'charleston-cinematic',
+      filter: ['==', ['get', 'kind'], 'greater_charleston_union'],
+      slot: 'top',
+      paint: { 'line-color': '#c9a84c', 'line-width': 2.5, 'line-dasharray': [4, 2] },
+      layout: { visibility: 'none' },
+    });
+  } catch (err) { console.warn('Cinematic shapes not loaded:', err.message); }
+
+  // 9c. Census choropleth
+  try {
+    map.addSource('charleston-area-tracts', {
+      type: 'geojson',
+      data: TRACTS_PATH,
+      promoteId: 'GEOID',
+    });
+
+    map.addLayer({
+      id: 'census-fill',
+      type: 'fill',
+      source: 'charleston-area-tracts',
+      slot: 'bottom',
+      paint: {
+        'fill-color': buildFillColorExpression(currentMetric, currentYear),
+        'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.88, 0.68],
+      },
+    });
+
+    map.addLayer({
+      id: 'census-outline',
+      type: 'line',
+      source: 'charleston-area-tracts',
+      slot: 'middle',
+      paint: {
+        'line-color': 'rgba(255,255,255,0.65)',
+        'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 2.5, 0.55],
+      },
+    });
+
+    console.log('Census layer loaded.');
+  } catch (err) {
+    console.error('Could not load Census layer:', err);
+    console.log('Run execution/fetch_charleston_data.py to generate data files.');
+  }
+
+  // 9d. Place boundaries
+  try {
+    map.addSource('charleston-places', { type: 'geojson', data: PLACES_PATH });
+
+    map.addLayer({
+      id: 'place-fill',
+      type: 'fill',
+      source: 'charleston-places',
+      filter: ['==', ['get', 'kind'], 'incorporated_town'],
+      slot: 'middle',
+      paint: { 'fill-color': '#0e4d6c', 'fill-opacity': 0.06 },
+    });
+
+    map.addLayer({
+      id: 'place-outline',
+      type: 'line',
+      source: 'charleston-places',
+      filter: ['any', ['==', ['get', 'kind'], 'incorporated_town'], ['==', ['get', 'kind'], 'cdp']],
+      slot: 'top',
+      paint: { 'line-color': '#0e4d6c', 'line-width': 2 },
+    });
+
+    map.addLayer({
+      id: 'colloquial-points',
+      type: 'circle',
+      source: 'charleston-places',
+      filter: ['==', ['get', 'kind'], 'colloquial'],
+      slot: 'top',
+      paint: {
+        'circle-radius': 6,
+        'circle-color': '#c9a84c',
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 2,
+      },
+    });
+
+    map.addLayer({
+      id: 'place-labels',
+      type: 'symbol',
+      source: 'charleston-places',
+      slot: 'top',
+      layout: {
+        'text-field': ['get', 'display_name'],
+        'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+        'text-size': ['interpolate', ['linear'], ['zoom'], 9, 10, 14, 14],
+        'text-offset': [0, 0.9],
+        'text-anchor': 'top',
+        'text-allow-overlap': false,
+      },
+      paint: { 'text-color': '#0e2d3e', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 },
+    });
+
+    console.log('Place boundaries loaded.');
+  } catch (err) { console.warn('Place layer not loaded:', err.message); }
+
+  // 9e. Landmark pins
+  LANDMARKS.forEach((lm) => {
+    const popup = new mapboxgl.Popup({ offset: 25, closeButton: false })
+      .setHTML(`<div class="marker-popup"><h3>${lm.name}</h3><p>${lm.description}</p></div>`);
+    new mapboxgl.Marker({ color: '#9e2a2b' })
+      .setLngLat(lm.coordinates)
+      .setPopup(popup)
+      .addTo(map);
+  });
+
+  // 9f. Populate metric dropdown
+  const sel = document.getElementById('metricSelect');
+  Object.entries(METRICS).forEach(([key, m]) => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = m.label;
+    sel.appendChild(opt);
+  });
+  sel.value = currentMetric;
+  updateLegend(currentMetric);
+
+  console.log('Charleston map loaded.');
+});
+
+// =============================================================
+// 10. HOVER STATE
+// =============================================================
+let hoveredTractId = null;
+
+map.on('mousemove', 'census-fill', (e) => {
+  if (!e.features.length) return;
+  map.getCanvas().style.cursor = 'pointer';
+  const newId = e.features[0].id;
+  if (hoveredTractId !== null && hoveredTractId !== newId) {
+    map.setFeatureState({ source: 'charleston-area-tracts', id: hoveredTractId }, { hover: false });
+  }
+  hoveredTractId = newId;
+  map.setFeatureState({ source: 'charleston-area-tracts', id: hoveredTractId }, { hover: true });
+});
+
+map.on('mouseleave', 'census-fill', () => {
+  map.getCanvas().style.cursor = '';
+  if (hoveredTractId !== null) {
+    map.setFeatureState({ source: 'charleston-area-tracts', id: hoveredTractId }, { hover: false });
+  }
+  hoveredTractId = null;
+});
+
+// =============================================================
+// 11. CLICK POPUP — adapts to current metric
+// =============================================================
+map.on('click', 'census-fill', (e) => {
+  if (!e.features.length) return;
+  const p = e.features[0].properties;
+  const m = METRICS[currentMetric];
+  const name = p.NAME || `Tract ${p.TRACT}`;
+  const countyTag = p.county_name
+    ? `<div class="tract-county">${p.county_name} County, SC</div>` : '';
+
+  // Primary metric value
+  const property = m.isYearAware
+    ? m.propertyTemplate.replace('{year}', currentYear)
+    : m.property;
+  const primaryVal = p[property];
+  const formatted = m.formatPopup(primaryVal);
+
+  // Growth badge (if not already the growth metric)
+  let growthBadge = '';
+  if (currentMetric !== 'growth_pct' && (p.has_2010 === true || p.has_2010 === 'true')) {
+    const g = parseFloat(p.growth_pct);
+    const sign = g > 0 ? '+' : '';
+    const cls = g >= 0 ? '' : ' negative';
+    growthBadge = `<div class="tract-highlight${cls}">${g > 0 ? '▲' : '▼'} ${sign}${g.toFixed(1)}% since 2010</div>`;
+  }
+
+  // Highlight for primary metric
+  const highlightClass = (currentMetric === 'growth_pct' && parseFloat(primaryVal) < 0) ? ' negative' : '';
+  const highlight = `<div class="tract-highlight${highlightClass}">${m.label}: ${formatted}</div>`;
+
+  const noteEl = p.has_2010 === false || p.has_2010 === 'false'
+    ? '<div class="tract-note">New tract since 2010 — no clean 2010 comparison.</div>' : '';
+
+  const body = `
+    <div class="tract-popup">
+      <h3>${name}</h3>
+      ${countyTag}
+      <div class="tract-stat">
+        <span class="label">2020 pop</span>
+        <span class="value">${p.pop_2020 != null ? Number(p.pop_2020).toLocaleString() : 'n/a'}</span>
+      </div>
+      ${p.median_income != null ? `<div class="tract-stat">
+        <span class="label">Median income</span>
+        <span class="value">$${Number(p.median_income).toLocaleString()}</span>
+      </div>` : ''}
+      ${highlight}
+      ${growthBadge}
+      ${noteEl}
+    </div>`;
+
+  new mapboxgl.Popup({ offset: 4, maxWidth: '270px' })
+    .setLngLat(e.lngLat)
+    .setHTML(body)
+    .addTo(map);
+});
+
+// Place clicks
+['place-fill', 'place-outline', 'colloquial-points'].forEach((layerId) => {
+  map.on('click', layerId, (e) => {
+    if (!e.features.length) return;
+    const p = e.features[0].properties;
+    new mapboxgl.Popup({ offset: 8, maxWidth: '280px' })
+      .setLngLat(e.lngLat)
+      .setHTML(`<div class="place-popup"><h3>${p.display_name}</h3><p>${p.tooltip || ''}</p></div>`)
+      .addTo(map);
+    e.originalEvent.stopPropagation();
+  });
+  map.on('mouseenter', layerId, () => { map.getCanvas().style.cursor = 'pointer'; });
+  map.on('mouseleave', layerId, () => { map.getCanvas().style.cursor = ''; });
+});
+
+// =============================================================
+// 12. window.charlestonMap — voice agent control API
+// =============================================================
+window.charlestonMap = {
+
+  setMetric(metricKey) {
+    const aliases = {
+      'growth': 'growth_pct', 'population growth': 'growth_pct', '2010 to 2020': 'growth_pct',
+      'population': 'pop_2020', 'pop': 'pop_2020', '2020 population': 'pop_2020',
+      'annual population': 'pop_by_year', 'population by year': 'pop_by_year', 'year': 'pop_by_year',
+      'income': 'median_income', 'household income': 'median_income',
+      'age': 'median_age', 'median age': 'median_age',
+      'diversity': 'pct_nonwhite', 'non-white': 'pct_nonwhite', 'race': 'pct_nonwhite',
+    };
+    const key = aliases[String(metricKey).toLowerCase()] || metricKey;
+    if (!METRICS[key]) return { success: false, error: `Unknown metric: "${metricKey}". Available: ${Object.keys(METRICS).join(', ')}.` };
+    setMetricLayer(key);
+    document.getElementById('metricSelect').value = key;
+    return { success: true, metric: key, label: METRICS[key].label };
+  },
+
+  flyToPlace(name) {
+    if (!name) return { success: false, error: 'Need a place name.' };
+    const n = String(name).toLowerCase().trim();
+    const target = FLY_TARGETS[n] || Object.entries(FLY_TARGETS).find(([k]) => k.includes(n) || n.includes(k))?.[1];
+    if (!target) return { success: false, error: `Unknown place: "${name}". Try: ${Object.values(FLY_TARGETS).map(t => t.label).slice(0,5).join(', ')}, ...` };
+    map.flyTo({ center: target.center, zoom: target.zoom, pitch: target.pitch ?? 40, bearing: target.bearing ?? 0, duration: 2200, essential: true });
+    return { success: true, flew_to: target.label };
+  },
+
+  resetView() {
+    map.flyTo({ center: CHARLESTON_CENTER, zoom: DEFAULT_ZOOM, pitch: DEFAULT_PITCH, bearing: DEFAULT_BEARING, duration: 2000, essential: true });
+    return { success: true };
+  },
+
+  fitGreaterCharleston() {
+    map.fitBounds(GREATER_CHARLESTON_BOUNDS, { padding: 40, duration: 2000, pitch: 25, bearing: 0 });
+    return { success: true, area: 'Greater Charleston tri-county metro' };
+  },
+
+  setCinematic(on) {
+    const vis = on ? 'visible' : 'none';
+    if (map.getLayer('cinematic-mask'))    map.setLayoutProperty('cinematic-mask', 'visibility', vis);
+    if (map.getLayer('cinematic-boundary')) map.setLayoutProperty('cinematic-boundary', 'visibility', vis);
+    if (on) { map.fitBounds(GREATER_CHARLESTON_BOUNDS, { padding: 60, duration: 2400, pitch: 40, bearing: 0 }); }
+    return { success: true, cinematic: on };
+  },
+
+  setYear(year) {
+    const y = parseInt(year);
+    if (isNaN(y) || y < 2014 || y > 2022) return { success: false, error: 'Year must be 2014–2022.' };
+    currentYear = y;
+    if (METRICS[currentMetric]?.isYearAware) {
+      setMetricLayer(currentMetric, y);
+    } else {
+      setMetricLayer('pop_by_year', y);
+      document.getElementById('metricSelect').value = 'pop_by_year';
+    }
+    return { success: true, year: y };
+  },
+
+  toggleCinematic() {
+    cinematicOn = !cinematicOn;
+    const vis = cinematicOn ? 'visible' : 'none';
+    if (map.getLayer('cinematic-mask'))     map.setLayoutProperty('cinematic-mask', 'visibility', vis);
+    if (map.getLayer('cinematic-boundary')) map.setLayoutProperty('cinematic-boundary', 'visibility', vis);
+    if (cinematicOn) { map.fitBounds(GREATER_CHARLESTON_BOUNDS, { padding: 60, duration: 2400, pitch: 40, bearing: 0 }); }
+    const btn = document.getElementById('toggleCinematic');
+    if (btn) { btn.textContent = cinematicOn ? 'Exit Cinematic' : 'Cinematic'; btn.style.background = cinematicOn ? '#c9a84c' : ''; btn.style.color = cinematicOn ? '#000' : ''; }
+    return { success: true, cinematic: cinematicOn };
+  },
+
+  togglePlaces() {
+    placesVisible = !placesVisible;
+    const vis = placesVisible ? 'visible' : 'none';
+    ['place-fill', 'place-outline', 'colloquial-points', 'place-labels'].forEach(id => {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
+    });
+    const btn = document.getElementById('togglePlaces');
+    if (btn) btn.textContent = placesVisible ? 'Hide Places' : 'Show Places';
+    return { success: true, places_visible: placesVisible };
+  },
+
+  toggleCensus() {
+    censusVisible = !censusVisible;
+    const vis = censusVisible ? 'visible' : 'none';
+    ['census-fill', 'census-outline'].forEach(id => { if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis); });
+    document.getElementById('legend').classList.toggle('hidden', !censusVisible);
+    const btn = document.getElementById('toggleCensus');
+    if (btn) btn.textContent = censusVisible ? 'Hide Census' : 'Show Census';
+    return { success: true, census_visible: censusVisible };
+  },
+
+  toggle3D() {
+    in3DMode = !in3DMode;
+    map.easeTo({ pitch: in3DMode ? DEFAULT_PITCH : 0, bearing: 0, duration: 1200 });
+    const btn = document.getElementById('toggle3D');
+    if (btn) btn.textContent = in3DMode ? 'Toggle 3D' : 'Toggle 2D';
+    return { success: true, mode_3d: in3DMode };
+  },
+};
+
+// =============================================================
+// 13. BUTTON HANDLERS
+// =============================================================
+document.getElementById('resetView').addEventListener('click', () => {
+  window.charlestonMap.resetView();
+});
+
+// State for toggle methods (referenced by window.charlestonMap toggle* methods above)
+let in3DMode      = true;
+let censusVisible = true;
+let placesVisible = true;
+let cinematicOn   = false;
+
+document.getElementById('toggle3D').addEventListener('click', () => window.charlestonMap.toggle3D());
+
+const LIGHT_PRESETS = ['day', 'dusk', 'dawn', 'night'];
+let lightIndex = 0;
+document.getElementById('cycleLight').addEventListener('click', (e) => {
+  lightIndex = (lightIndex + 1) % LIGHT_PRESETS.length;
+  const preset = LIGHT_PRESETS[lightIndex];
+  try { map.setConfigProperty('basemap', 'lightPreset', preset); } catch {}
+  e.target.textContent = `Lighting: ${preset}`;
+});
+
+document.getElementById('toggleCensus').addEventListener('click', () => window.charlestonMap.toggleCensus());
+document.getElementById('togglePlaces').addEventListener('click', () => window.charlestonMap.togglePlaces());
+document.getElementById('toggleCinematic').addEventListener('click', () => window.charlestonMap.toggleCinematic());
+
+// Metric dropdown
+document.getElementById('metricSelect').addEventListener('change', (e) => {
+  setMetricLayer(e.target.value);
+});
+
+// Year slider
+document.getElementById('yearSlider').addEventListener('input', (e) => {
+  currentYear = parseInt(e.target.value);
+  document.getElementById('yearLabel').textContent = `Year: ${currentYear}`;
+  if (map.getLayer('census-fill')) {
+    map.setPaintProperty('census-fill', 'fill-color', buildFillColorExpression(currentMetric, currentYear));
+  }
+});
+
+// =============================================================
+// 14. ERROR HANDLER
+// =============================================================
+map.on('error', (err) => {
+  if (String(mapboxgl.accessToken).startsWith('PASTE')) {
+    document.body.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;height:100vh;
+                  font-family:system-ui;background:#0a0e14;color:#f5f0e8;padding:24px;text-align:center;">
+        <div style="max-width:480px;">
+          <h1 style="font-family:'Libre Baskerville',serif;font-size:28px;margin-bottom:12px;">Almost there</h1>
+          <p style="line-height:1.5;color:#aaa;">
+            Open <code style="background:#222;padding:2px 6px;border-radius:3px;">map.js</code>
+            and paste your Mapbox token at the top.
+          </p>
+        </div>
+      </div>`;
+  } else {
+    console.error('Mapbox error:', err);
+  }
+});
