@@ -14,16 +14,17 @@ const VAPI_ASSISTANT_ID = 'bdc929fb-5dbb-43ee-84f6-8f51b26c85b9';
 // =============================================================
 // Data cache — loaded once at startup
 // =============================================================
-let DATA = { tracts: null, places: null, summary: null, loaded: false };
+let DATA = { tracts: null, places: null, summary: null, productivity: null, loaded: false };
 
 async function loadData() {
   try {
-    const [tracts, places, summary] = await Promise.all([
+    const [tracts, places, summary, productivity] = await Promise.all([
       fetch('data/charleston-area-tracts.geojson').then(r => r.json()),
       fetch('data/charleston-places.geojson').then(r => r.json()),
       fetch('data/charleston-area-summary.json').then(r => r.json()),
+      fetch('productivity/three-area/summary.json').then(r => r.json()),
     ]);
-    DATA = { tracts, places, summary, loaded: true };
+    DATA = { tracts, places, summary, productivity, loaded: true };
     console.log(`Voice data loaded: ${tracts.features.length} tracts, ${places.features.length} places.`);
   } catch (err) {
     console.warn('Voice data not loaded (run data pipeline first):', err.message);
@@ -214,6 +215,59 @@ const TOOLS = {
     };
   },
 
+  /**
+   * Return tax productivity stats for a named study area.
+   * area: 'walled city' | 'cena' | 'west ashley' | 'all'
+   */
+  get_productivity_info({ area = 'all' }) {
+    if (!DATA.loaded) return { error: 'Data not loaded yet.' };
+    const prod = DATA.productivity;
+    if (!prod) return { error: 'Productivity data not loaded.' };
+    const areas = prod.areas || {};
+    const a = String(area).toLowerCase().trim();
+
+    const fmt = (v) => v != null ? Math.round(v).toLocaleString() : 'n/a';
+
+    // Return specific area
+    const keys = Object.keys(areas);
+    const matched = keys.find(k => {
+      const kl = k.toLowerCase();
+      return kl.includes(a) || a.includes(kl) ||
+        (a.includes('walled') && kl.includes('walled')) ||
+        (a.includes('cena') && kl.includes('cena')) ||
+        (a.includes('west') && kl.includes('west'));
+    });
+
+    if (matched) {
+      const d = areas[matched];
+      return {
+        area: d.name,
+        description: d.description,
+        parcels: d.n,
+        acres: Math.round(d.polygon_acres * 10) / 10,
+        annual_tax: '$' + fmt(d.tax),
+        tax_per_acre: '$' + fmt(d.tpa) + '/acre',
+        value_per_acre: '$' + fmt(d.vpa) + '/acre',
+        taxable_tax_per_acre: '$' + fmt(d.tpa_taxable) + '/acre (taxable land only)',
+        pct_civic_exempt: d.n_civic ? Math.round(d.n_civic / d.n * 100) + '%' : 'n/a',
+        owner_occupied: d.n_oo ? Math.round(d.n_oo / d.n * 100) + '%' : 'n/a',
+      };
+    }
+
+    // Return comparison of all areas
+    if (a === 'all' || a === 'compare' || a === 'comparison') {
+      return {
+        comparison: keys.map(k => {
+          const d = areas[k];
+          return { area: d.short, tax_per_acre: '$' + fmt(d.tpa), annual_tax: '$' + fmt(d.tax), acres: Math.round(d.polygon_acres) };
+        }),
+        insight: `The Walled City generates $${fmt(areas['Walled City']?.tpa)}/acre — ${Math.round((areas['Walled City']?.tpa || 0) / (areas['West Ashley']?.tpa || 1))}x more than West Ashley's $${fmt(areas['West Ashley']?.tpa)}/acre.`,
+      };
+    }
+
+    return { error: `Unknown area "${area}". Options: Walled City, CENA, West Ashley, all.` };
+  },
+
   // ---- Client-side map control tools ----
 
   fly_to_place({ name }) {
@@ -257,7 +311,11 @@ const TOOLS = {
     if (l === '3d' || l === 'three d' || l === 'flat' || l === '2d' || l === 'tilt') {
       return map.toggle3D?.() ?? { error: 'Map not initialized.' };
     }
-    return { error: `Unknown layer "${layer}". Options: cinematic, places, census, 3d.` };
+    if (l === 'productivity' || l === 'tax' || l === 'parcels' || l === 'per acre' ||
+        l === '$/acre' || l === 'tax per acre' || l === 'walled city') {
+      return map.toggleProductivity?.() ?? { error: 'Map not initialized.' };
+    }
+    return { error: `Unknown layer "${layer}". Options: cinematic, places, census, 3d, productivity.` };
   },
 };
 

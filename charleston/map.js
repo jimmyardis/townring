@@ -152,9 +152,21 @@ const LANDMARKS = [
 // =============================================================
 // 6. DATA PATHS
 // =============================================================
-const TRACTS_PATH   = 'data/charleston-area-tracts.geojson';
-const PLACES_PATH   = 'data/charleston-places.geojson';
-const CINEMATIC_PATH = 'data/charleston-cinematic-shapes.geojson';
+const TRACTS_PATH        = 'data/charleston-area-tracts.geojson';
+const PLACES_PATH        = 'data/charleston-places.geojson';
+const CINEMATIC_PATH     = 'data/charleston-cinematic-shapes.geojson';
+const PRODUCTIVITY_PATH  = 'productivity/three-area/data.geojson';   // Walled City + CENA + West Ashley
+const PRODUCTIVITY_CITYWIDE_PATH = 'productivity/citywide/data_slim.geojson';
+
+// Tax/acre color stops — log-friendly scale, tells the Strong Towns story
+const TAX_ACRE_STOPS = [
+  [0,       '#d4d4c8'],  // no value / surface parking
+  [10000,   '#e8cf8a'],  // very low (suburban strip)
+  [50000,   '#c9a84c'],  // low-moderate
+  [150000,  '#d4541a'],  // moderate-high
+  [400000,  '#9e2a2b'],  // high (dense historic)
+  [1000000, '#4a0a0a'],  // exceptional
+];
 
 // =============================================================
 // 7. MAP INIT
@@ -379,7 +391,41 @@ map.on('load', async () => {
       .addTo(map);
   });
 
-  // 9f. Populate metric dropdown
+  // 9f. Productivity parcel layer (hidden by default)
+  try {
+    map.addSource('charleston-productivity', { type: 'geojson', data: PRODUCTIVITY_PATH, promoteId: 'pid' });
+
+    map.addLayer({
+      id: 'productivity-fill',
+      type: 'fill',
+      source: 'charleston-productivity',
+      slot: 'top',
+      layout: { visibility: 'none' },
+      paint: {
+        'fill-color': [
+          'case',
+          ['!', ['has', 'tax_per_acre']],
+          '#d4d4c8',
+          ['interpolate', ['linear'], ['get', 'tax_per_acre'],
+            ...TAX_ACRE_STOPS.flat()],
+        ],
+        'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.95, 0.80],
+      },
+    });
+
+    map.addLayer({
+      id: 'productivity-outline',
+      type: 'line',
+      source: 'charleston-productivity',
+      slot: 'top',
+      layout: { visibility: 'none' },
+      paint: { 'line-color': 'rgba(255,255,255,0.5)', 'line-width': 0.4 },
+    });
+
+    console.log('Productivity layer loaded.');
+  } catch (err) { console.warn('Productivity layer not loaded:', err.message); }
+
+  // 9g. Populate metric dropdown
   const sel = document.getElementById('metricSelect');
   Object.entries(METRICS).forEach(([key, m]) => {
     const opt = document.createElement('option');
@@ -397,6 +443,7 @@ map.on('load', async () => {
 // 10. HOVER STATE
 // =============================================================
 let hoveredTractId = null;
+let hoveredParcelId = null;
 
 map.on('mousemove', 'census-fill', (e) => {
   if (!e.features.length) return;
@@ -487,6 +534,57 @@ map.on('click', 'census-fill', (e) => {
   });
   map.on('mouseenter', layerId, () => { map.getCanvas().style.cursor = 'pointer'; });
   map.on('mouseleave', layerId, () => { map.getCanvas().style.cursor = ''; });
+});
+
+// =============================================================
+// 11b. PRODUCTIVITY HOVER + CLICK
+// =============================================================
+map.on('mousemove', 'productivity-fill', (e) => {
+  if (!e.features.length) return;
+  map.getCanvas().style.cursor = 'pointer';
+  const newId = e.features[0].id;
+  if (hoveredParcelId !== null && hoveredParcelId !== newId) {
+    map.setFeatureState({ source: 'charleston-productivity', id: hoveredParcelId }, { hover: false });
+  }
+  hoveredParcelId = newId;
+  map.setFeatureState({ source: 'charleston-productivity', id: hoveredParcelId }, { hover: true });
+});
+
+map.on('mouseleave', 'productivity-fill', () => {
+  map.getCanvas().style.cursor = '';
+  if (hoveredParcelId !== null) {
+    map.setFeatureState({ source: 'charleston-productivity', id: hoveredParcelId }, { hover: false });
+  }
+  hoveredParcelId = null;
+});
+
+map.on('click', 'productivity-fill', (e) => {
+  if (!e.features.length) return;
+  const p = e.features[0].properties;
+  const tpa = p.tax_per_acre != null ? '$' + Math.round(p.tax_per_acre).toLocaleString() + '/ac' : 'n/a';
+  const vpa = p.value_per_acre != null ? '$' + Math.round(p.value_per_acre).toLocaleString() + '/ac' : 'n/a';
+  const appr = p.appraisal != null ? '$' + Number(p.appraisal).toLocaleString() : 'n/a';
+  const tax  = p.est_tax_net != null ? '$' + Math.round(p.est_tax_net).toLocaleString() + '/yr' : 'n/a';
+  const flags = [
+    p.legal_residence ? '🏠 Owner-occupied' : null,
+    p.is_civic_exempt ? '⛪ Civic/exempt' : null,
+    p.absentee_owner ? '📮 Absentee owner' : null,
+  ].filter(Boolean).join('<br>');
+
+  new mapboxgl.Popup({ offset: 4, maxWidth: '280px' })
+    .setLngLat(e.lngLat)
+    .setHTML(`
+      <div class="tract-popup">
+        <h3>${p.address || 'Parcel'}</h3>
+        <div class="tract-county">${p.area_short || ''} · ${p.use_label || ''}</div>
+        <div class="tract-stat"><span class="label">Tax/acre</span><span class="value">${tpa}</span></div>
+        <div class="tract-stat"><span class="label">Value/acre</span><span class="value">${vpa}</span></div>
+        <div class="tract-stat"><span class="label">Appraised</span><span class="value">${appr}</span></div>
+        <div class="tract-stat"><span class="label">Annual tax</span><span class="value">${tax}</span></div>
+        ${flags ? `<div class="tract-note" style="margin-top:6px;">${flags}</div>` : ''}
+      </div>`)
+    .addTo(map);
+  e.originalEvent.stopPropagation();
 });
 
 // =============================================================
@@ -589,6 +687,24 @@ window.charlestonMap = {
     if (btn) btn.textContent = in3DMode ? 'Toggle 3D' : 'Toggle 2D';
     return { success: true, mode_3d: in3DMode };
   },
+
+  toggleProductivity() {
+    productivityVisible = !productivityVisible;
+    const vis = productivityVisible ? 'visible' : 'none';
+    ['productivity-fill', 'productivity-outline'].forEach(id => {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
+    });
+    const btn = document.getElementById('toggleProductivity');
+    if (btn) {
+      btn.textContent = productivityVisible ? 'Hide $/Acre' : '$/Acre';
+      btn.style.background = productivityVisible ? '#9e2a2b' : '';
+      btn.style.color = productivityVisible ? '#fff' : '';
+    }
+    if (productivityVisible) {
+      map.flyTo({ center: [-79.9399, 32.7750], zoom: 14.5, pitch: 45, bearing: 10, duration: 2000, essential: true });
+    }
+    return { success: true, productivity_visible: productivityVisible };
+  },
 };
 
 // =============================================================
@@ -599,10 +715,11 @@ document.getElementById('resetView').addEventListener('click', () => {
 });
 
 // State for toggle methods (referenced by window.charlestonMap toggle* methods above)
-let in3DMode      = true;
-let censusVisible = true;
-let placesVisible = true;
-let cinematicOn   = false;
+let in3DMode          = true;
+let censusVisible     = true;
+let placesVisible     = true;
+let cinematicOn       = false;
+let productivityVisible = false;
 
 document.getElementById('toggle3D').addEventListener('click', () => window.charlestonMap.toggle3D());
 
@@ -618,6 +735,7 @@ document.getElementById('cycleLight').addEventListener('click', (e) => {
 document.getElementById('toggleCensus').addEventListener('click', () => window.charlestonMap.toggleCensus());
 document.getElementById('togglePlaces').addEventListener('click', () => window.charlestonMap.togglePlaces());
 document.getElementById('toggleCinematic').addEventListener('click', () => window.charlestonMap.toggleCinematic());
+document.getElementById('toggleProductivity').addEventListener('click', () => window.charlestonMap.toggleProductivity());
 
 // Metric dropdown
 document.getElementById('metricSelect').addEventListener('change', (e) => {
