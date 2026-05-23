@@ -1,11 +1,12 @@
 /* ============================================================
    Charleston Map — Voice Agent
-   Client-side Vapi SDK + 7 voice tools (4 data, 3 map control)
-   NOTE: voice.js loaded AFTER vapi UMD bundle (see index.html)
+   Client-side Vapi SDK + 9 voice tools (4 data, 5 map control)
    ============================================================ */
 
+import Vapi from 'https://esm.sh/@vapi-ai/web@latest';
+
 // =============================================================
-// VAPI CREDENTIALS — paste yours here
+// VAPI CREDENTIALS
 // =============================================================
 const VAPI_PUBLIC_KEY   = '046d7e78-64ab-404b-ad0e-e6c3e800bd41';
 const VAPI_ASSISTANT_ID = 'bdc929fb-5dbb-43ee-84f6-8f51b26c85b9';
