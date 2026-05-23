@@ -22,19 +22,22 @@ let DATA = {
   tracts: null,         // chapin-area-tracts.geojson
   places: null,         // chapin-places.geojson
   summary: null,        // chapin-area-summary.json
+  productivity: null,   // productivity/proper/summary.json
   loaded: false,
 };
 
 async function loadData() {
   try {
-    const [tracts, places, summary] = await Promise.all([
+    const [tracts, places, summary, productivity] = await Promise.all([
       fetch('data/chapin-area-tracts.geojson').then(r => r.json()),
       fetch('data/chapin-places.geojson').then(r => r.json()),
       fetch('data/chapin-area-summary.json').then(r => r.json()),
+      fetch('productivity/proper/summary.json').then(r => r.json()),
     ]);
     DATA.tracts = tracts;
     DATA.places = places;
     DATA.summary = summary;
+    DATA.productivity = productivity;
     DATA.loaded = true;
     console.log(
       `📚 Voice agent data loaded: ${tracts.features.length} tracts, ` +
@@ -185,6 +188,37 @@ const TOOLS = {
     return Object.keys(result).length === 0
       ? { error: `No data for county "${county}".` }
       : { years: result };
+  },
+
+  get_productivity_info({ area = 'all' }) {
+    if (!DATA.loaded || !DATA.productivity) return { error: 'Productivity data not loaded yet.' };
+    const areas = DATA.productivity.areas || {};
+    const a = String(area).toLowerCase().trim();
+    const fmt = (v) => v != null ? Math.round(v).toLocaleString() : 'n/a';
+
+    const keys = Object.keys(areas);
+    const matched = keys.find(k => k.toLowerCase().includes(a) || a.includes(k.toLowerCase()));
+
+    if (matched) {
+      const d = areas[matched];
+      return {
+        area: d.name || matched,
+        description: d.description,
+        parcels: d.n,
+        acres: d.polygon_acres ? Math.round(d.polygon_acres * 10) / 10 : null,
+        annual_tax: d.tax ? '$' + fmt(d.tax) : null,
+        tax_per_acre: d.tpa ? '$' + fmt(d.tpa) + '/acre' : null,
+        value_per_acre: d.vpa ? '$' + fmt(d.vpa) + '/acre' : null,
+        taxable_tax_per_acre: d.tpa_taxable ? '$' + fmt(d.tpa_taxable) + '/acre (taxable only)' : null,
+      };
+    }
+
+    return {
+      comparison: keys.map(k => {
+        const d = areas[k];
+        return { area: k, tax_per_acre: d.tpa ? '$' + fmt(d.tpa) : 'n/a', annual_tax: d.tax ? '$' + fmt(d.tax) : 'n/a' };
+      }),
+    };
   },
 
   // ============================================================

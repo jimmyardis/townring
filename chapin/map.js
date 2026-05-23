@@ -36,6 +36,17 @@ const LANDMARKS = [
 const CENSUS_GEOJSON_PATH    = 'data/chapin-area-tracts.geojson';
 const PLACES_GEOJSON_PATH    = 'data/chapin-places.geojson';
 const CINEMATIC_SHAPES_PATH  = 'data/chapin-cinematic-shapes.geojson';
+const PRODUCTIVITY_PATH      = 'productivity/proper/data.geojson';  // Town of Chapin parcels
+
+// Tax/acre color stops
+const TAX_ACRE_STOPS = [
+  [0,      '#d4d4c8'],
+  [2000,   '#e8cf8a'],
+  [8000,   '#c9a55a'],
+  [20000,  '#d4541a'],
+  [60000,  '#9e2a2b'],
+  [150000, '#4a0a0a'],
+];
 
 // Bounding box of the Greater Chapin union (computed in compute-chapin-union.py)
 const GREATER_CHAPIN_BOUNDS = [
@@ -443,6 +454,35 @@ map.on('load', async () => {
       .setLngLat(landmark.coordinates).setPopup(popup).addTo(map);
   });
 
+  // -------- 7f. Productivity parcel layer (hidden by default) --------
+  try {
+    map.addSource('chapin-productivity', { type: 'geojson', data: PRODUCTIVITY_PATH, promoteId: 'pid' });
+    map.addLayer({
+      id: 'productivity-fill',
+      type: 'fill',
+      source: 'chapin-productivity',
+      slot: 'top',
+      layout: { visibility: 'none' },
+      paint: {
+        'fill-color': [
+          'case',
+          ['!', ['has', 'tax_per_acre']], '#d4d4c8',
+          ['interpolate', ['linear'], ['get', 'tax_per_acre'], ...TAX_ACRE_STOPS.flat()],
+        ],
+        'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.95, 0.80],
+      },
+    });
+    map.addLayer({
+      id: 'productivity-outline',
+      type: 'line',
+      source: 'chapin-productivity',
+      slot: 'top',
+      layout: { visibility: 'none' },
+      paint: { 'line-color': 'rgba(255,255,255,0.5)', 'line-width': 0.4 },
+    });
+    console.log('Productivity layer loaded.');
+  } catch (err) { console.warn('Productivity layer not loaded:', err.message); }
+
   console.log('🗺️  Chapin map loaded — Session 6 (Demographics).');
 });
 
@@ -500,6 +540,52 @@ map.on('click', 'census-fill', (e) => {
     </div>`;
 
   new mapboxgl.Popup({ offset: 4, maxWidth: '300px' }).setLngLat(e.lngLat).setHTML(body).addTo(map);
+});
+
+// =============================================================
+// 8b. PRODUCTIVITY HOVER + CLICK
+// =============================================================
+let hoveredParcelId = null;
+
+map.on('mousemove', 'productivity-fill', (e) => {
+  if (!e.features.length) return;
+  map.getCanvas().style.cursor = 'pointer';
+  const newId = e.features[0].id;
+  if (hoveredParcelId !== null && hoveredParcelId !== newId) {
+    map.setFeatureState({ source: 'chapin-productivity', id: hoveredParcelId }, { hover: false });
+  }
+  hoveredParcelId = newId;
+  map.setFeatureState({ source: 'chapin-productivity', id: hoveredParcelId }, { hover: true });
+});
+map.on('mouseleave', 'productivity-fill', () => {
+  map.getCanvas().style.cursor = '';
+  if (hoveredParcelId !== null) {
+    map.setFeatureState({ source: 'chapin-productivity', id: hoveredParcelId }, { hover: false });
+  }
+  hoveredParcelId = null;
+});
+map.on('click', 'productivity-fill', (e) => {
+  if (!e.features.length) return;
+  const p = e.features[0].properties;
+  const tpa = p.tax_per_acre != null ? '$' + Math.round(p.tax_per_acre).toLocaleString() + '/ac' : 'n/a';
+  const vpa = p.value_per_acre != null ? '$' + Math.round(p.value_per_acre).toLocaleString() + '/ac' : 'n/a';
+  const tax = p.est_tax_net != null ? '$' + Math.round(p.est_tax_net).toLocaleString() + '/yr' : 'n/a';
+  const flags = [
+    p.legal_residence ? '🏠 Owner-occupied' : null,
+    p.is_civic_exempt ? '⛪ Civic/exempt' : null,
+  ].filter(Boolean).join('<br>');
+  new mapboxgl.Popup({ offset: 4, maxWidth: '280px' })
+    .setLngLat(e.lngLat)
+    .setHTML(`<div class="tract-popup">
+      <h3>${p.address || 'Parcel'}</h3>
+      <div class="tract-county">${p.use_label || ''}</div>
+      <div class="tract-stat"><span class="label">Tax/acre</span><span class="value">${tpa}</span></div>
+      <div class="tract-stat"><span class="label">Value/acre</span><span class="value">${vpa}</span></div>
+      <div class="tract-stat"><span class="label">Annual tax</span><span class="value">${tax}</span></div>
+      ${flags ? `<div class="tract-note" style="margin-top:6px;">${flags}</div>` : ''}
+    </div>`)
+    .addTo(map);
+  e.originalEvent.stopPropagation();
 });
 
 // =============================================================
@@ -731,6 +817,7 @@ function reAddDataLayers() {
 }
 
 let placesVisible = true;
+let productivityVisible = false;
 const placesBtn = document.getElementById('togglePlaces');
 if (placesBtn) {
   placesBtn.addEventListener('click', (e) => {
@@ -912,7 +999,30 @@ window.chapinMap = {
       document.getElementById('cycleStyle')?.click();
       return { success: true, toggled: 'style' };
     }
-    return { success: false, error: `Unknown layer "${layerName}". Try: places, cinematic, 3d, style.` };
+    if (l.includes('productivity') || l.includes('tax') || l.includes('parcel') ||
+        l.includes('per acre') || l.includes('$/acre')) {
+      document.getElementById('toggleProductivity')?.click();
+      return { success: true, toggled: 'productivity' };
+    }
+    return { success: false, error: `Unknown layer "${layerName}". Try: places, cinematic, 3d, style, productivity.` };
+  },
+
+  toggleProductivity() {
+    productivityVisible = !productivityVisible;
+    const vis = productivityVisible ? 'visible' : 'none';
+    ['productivity-fill', 'productivity-outline'].forEach(id => {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
+    });
+    const btn = document.getElementById('toggleProductivity');
+    if (btn) {
+      btn.textContent = productivityVisible ? 'Hide $/Acre' : '$/Acre';
+      btn.style.background = productivityVisible ? '#9e2a2b' : '';
+      btn.style.color = productivityVisible ? '#fff' : '';
+    }
+    if (productivityVisible) {
+      map.flyTo({ center: [-81.3527, 34.1654], zoom: 14.5, pitch: 50, bearing: 0, duration: 2000, essential: true });
+    }
+    return { success: true, productivity_visible: productivityVisible };
   },
 
   reset() {
@@ -923,6 +1033,8 @@ window.chapinMap = {
     return { success: true };
   },
 };
+
+document.getElementById('toggleProductivity')?.addEventListener('click', () => window.chapinMap.toggleProductivity());
 
 console.log('🎙️  Voice control API ready (window.chapinMap).');
 
