@@ -337,17 +337,7 @@ let callActive = false;
 voiceBtn.addEventListener('click', () => {
   if (!callActive) {
     setStatus('Connecting…', true);
-    vapi.start(VAPI_ASSISTANT_ID, {
-      assistantOverrides: {
-        firstMessage: 'Welcome to the Charleston Map. Ask me about any neighborhood, county, or census tract — or just say a place name and I\'ll fly you there.',
-        model: {
-          messages: [{
-            role: 'system',
-            content: 'You are a voice data guide for the Charleston, SC map on TownRing.com. Your tools contain census data for the Greater Charleston tri-county area: Charleston County, Berkeley County, and Dorchester County. When discussing places or rankings, reference Charleston-area locations. Never say you only have access to Chapin data.',
-          }],
-        },
-      },
-    });
+    vapi.start(VAPI_ASSISTANT_ID);
   } else {
     vapi.stop();
   }

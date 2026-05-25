@@ -213,17 +213,7 @@ let callActive = false;
 voiceBtn.addEventListener('click', () => {
   if (!callActive) {
     setStatus('Connecting…', true);
-    vapi.start(VAPI_ASSISTANT_ID, {
-      assistantOverrides: {
-        firstMessage: 'Welcome to the Columbia Map. Ask me about any neighborhood, county, or census tract — or just say a place name and I\'ll fly you there.',
-        model: {
-          messages: [{
-            role: 'system',
-            content: 'You are a voice data guide for the Columbia, SC map on TownRing.com. Your tools contain census data for the Columbia metro area in Richland County. When discussing places or rankings, reference Columbia-area locations.',
-          }],
-        },
-      },
-    });
+    vapi.start(VAPI_ASSISTANT_ID);
   } else {
     vapi.stop();
   }
