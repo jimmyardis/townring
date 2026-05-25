@@ -10,8 +10,8 @@ import Vapi from 'https://esm.sh/@vapi-ai/web@latest';
 // =============================================================
 // VAPI CREDENTIALS  ← paste yours here
 // =============================================================
-const VAPI_PUBLIC_KEY   = 'PASTE_YOUR_VAPI_PUBLIC_KEY_HERE';
-const VAPI_ASSISTANT_ID = 'PASTE_YOUR_COLUMBIA_ASSISTANT_ID_HERE';
+const VAPI_PUBLIC_KEY   = '046d7e78-64ab-404b-ad0e-e6c3e800bd41';
+const VAPI_ASSISTANT_ID = 'eed4637f-c1f2-47f0-a896-f93c38532f1b';
 
 // =============================================================
 // Data caches — loaded once at startup
@@ -213,7 +213,17 @@ let callActive = false;
 voiceBtn.addEventListener('click', () => {
   if (!callActive) {
     setStatus('Connecting…', true);
-    vapi.start(VAPI_ASSISTANT_ID);
+    vapi.start(VAPI_ASSISTANT_ID, {
+      assistantOverrides: {
+        firstMessage: 'Welcome to the Columbia Map. Ask me about any neighborhood, county, or census tract — or just say a place name and I\'ll fly you there.',
+        model: {
+          messages: [{
+            role: 'system',
+            content: 'You are a voice data guide for the Columbia, SC map on TownRing.com. Your tools contain census data for the Columbia metro area in Richland County. When discussing places or rankings, reference Columbia-area locations.',
+          }],
+        },
+      },
+    });
   } else {
     vapi.stop();
   }

@@ -268,7 +268,17 @@ let callActive = false;
 voiceBtn.addEventListener('click', () => {
   if (!callActive) {
     setStatus('Connecting…', true);
-    vapi.start(VAPI_ASSISTANT_ID);
+    vapi.start(VAPI_ASSISTANT_ID, {
+      assistantOverrides: {
+        firstMessage: 'Welcome to the Chapin Map. Ask me about any neighborhood, county, or census tract — or just say a place name and I\'ll fly you there.',
+        model: {
+          messages: [{
+            role: 'system',
+            content: 'You are a voice data guide for the Chapin, SC map on TownRing.com. Your tools contain census data for the Greater Chapin area spanning Lexington County and Richland County. When discussing places or rankings, reference Chapin-area locations like Chapin, Irmo, Ballentine, White Rock, and Lake Murray.',
+          }],
+        },
+      },
+    });
   } else {
     vapi.stop();
   }
