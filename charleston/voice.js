@@ -45,12 +45,25 @@ const TOOLS = {
     if (!name) return { error: 'Need a place name.' };
     const n = String(name).toLowerCase().trim();
 
+    // 0. Metro / tri-county shortcut
+    if (/tri.?county|greater charleston|charleston metro|metro area/.test(n) || n === 'metro') {
+      return {
+        name: 'Greater Charleston Tri-County Metro',
+        type: 'metro_area',
+        counties: 'Charleston, Berkeley, Dorchester',
+        population_2020: DATA.summary.pop_2020,
+        population_2010: DATA.summary.pop_2010,
+        growth_pct_2010_2020: DATA.summary.growth_pct_2010_2020,
+        note: 'Tri-county total. For individual county breakdowns use get_county_data.',
+      };
+    }
+
     // 1. Counties
     const yearsByCounty = DATA.summary?.county_population_by_year || {};
     for (const [county, years] of Object.entries(yearsByCounty)) {
       if (n.includes(county.toLowerCase()) || county.toLowerCase().includes(n)) {
-        const pop2020 = years[2020] || years['2020'];
-        const pop2010 = years[2010] || years['2010'];
+        const pop2020 = years['2020'];
+        const pop2010 = years['2010'];
         return {
           name: `${county} County, SC`,
           type: 'county',
@@ -63,7 +76,7 @@ const TOOLS = {
       }
     }
 
-    // 2. Named places
+    // 2. Named places (municipalities, CDPs, colloquial areas)
     if (DATA.places?.features) {
       const place = DATA.places.features.find(f => {
         const dn = String(f.properties.display_name || '').toLowerCase();
@@ -71,11 +84,24 @@ const TOOLS = {
         return dn.includes(n) || n.includes(dn) || (bn && (bn.includes(n) || n.includes(bn)));
       });
       if (place) {
-        return {
+        const result = {
           name: place.properties.display_name,
           type: place.properties.kind,
           notes: place.properties.tooltip,
         };
+        // Enrich incorporated places with 2020 Census population
+        const placePop = DATA.summary?.place_population?.[place.properties.BASENAME];
+        if (placePop) {
+          result.population_2020 = placePop['2020'];
+          result.population_2010 = placePop['2010'] || null;
+          if (placePop['2020'] && placePop['2010']) {
+            result.growth_pct_2010_2020 = Math.round(
+              (placePop['2020'] - placePop['2010']) / placePop['2010'] * 1000
+            ) / 10;
+          }
+          result.population_source = '2020 Decennial Census';
+        }
+        return result;
       }
     }
 
@@ -103,7 +129,7 @@ const TOOLS = {
       }
     }
 
-    return { error: `Couldn't find "${name}". Try: Downtown Charleston, Mount Pleasant, Folly Beach, etc.` };
+    return { error: `Couldn't find "${name}". Try a city name (Charleston, Mount Pleasant, North Charleston), a county (Charleston County, Berkeley County), a neighborhood (West Ashley, The Peninsula, Shem Creek), or a census tract number.` };
   },
 
   /**
