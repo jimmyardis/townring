@@ -25,7 +25,7 @@ const GREATER_CHARLESTON_BOUNDS = [
 ];
 
 // =============================================================
-// 3. METRICS — 6 choropleth data layers
+// 3. METRICS — choropleth data layers
 // =============================================================
 const METRICS = {
   growth_pct: {
@@ -53,10 +53,10 @@ const METRICS = {
   pop_by_year: {
     label: 'Population by year (ACS)',
     isYearAware: true,
-    years: [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022],
-    defaultYear: 2022,
+    years: [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023],
+    defaultYear: 2023,
     propertyTemplate: 'pop_{year}',
-    nullCheck: ['!', ['has', 'pop_2022']],
+    nullCheck: ['!', ['has', 'pop_2023']],
     nullColor: 'rgba(180,180,180,0.55)',
     nullLabel: 'No data',
     stops: [[0, '#fff5eb'], [1000, '#fdd0a2'], [3000, '#fd8d3c'], [6000, '#d94701'], [10000, '#7f2704']],
@@ -96,6 +96,116 @@ const METRICS = {
     legendLabels: ['0%', '20%', '40%', '60%', '80%+'],
     formatPopup: v => v == null ? 'n/a' : `${parseFloat(v).toFixed(1)}%`,
     legendGradient: 'linear-gradient(to right,#f7fcfd,#ccece6,#66c2a4,#2ca25f,#006d2c)',
+  },
+  poverty_rate: {
+    label: 'Poverty rate (ACS 2023)',
+    property: 'poverty_rate',
+    nullCheck: ['==', ['get', 'poverty_rate'], null],
+    nullColor: 'rgba(180,180,180,0.55)',
+    nullLabel: 'No data',
+    stops: [[0, '#fff5f0'], [5, '#fdd0a2'], [10, '#fc8d59'], [20, '#d7191c'], [35, '#7f0000']],
+    legendLabels: ['0%', '5%', '10%', '20%', '35%+'],
+    formatPopup: v => v == null ? 'n/a' : `${parseFloat(v).toFixed(1)}%`,
+    legendGradient: 'linear-gradient(to right,#fff5f0,#fdd0a2,#fc8d59,#d7191c,#7f0000)',
+  },
+  median_home_value: {
+    label: 'Median home value (ACS 2023)',
+    property: 'median_home_value',
+    nullCheck: ['==', ['get', 'median_home_value'], null],
+    nullColor: 'rgba(180,180,180,0.55)',
+    nullLabel: 'No data',
+    stops: [[0, '#f7fbff'], [150000, '#c6dbef'], [300000, '#6baed6'], [500000, '#2171b5'], [800000, '#08306b']],
+    legendLabels: ['$0', '$150k', '$300k', '$500k', '$800k+'],
+    formatPopup: v => v == null ? 'n/a' : '$' + Number(v).toLocaleString(),
+    legendGradient: 'linear-gradient(to right,#f7fbff,#c6dbef,#6baed6,#2171b5,#08306b)',
+  },
+  median_gross_rent: {
+    label: 'Median gross rent (ACS 2023)',
+    property: 'median_gross_rent',
+    nullCheck: ['==', ['get', 'median_gross_rent'], null],
+    nullColor: 'rgba(180,180,180,0.55)',
+    nullLabel: 'No data',
+    stops: [[0, '#fcfbfd'], [800, '#dadaeb'], [1200, '#9e9ac8'], [1600, '#6a51a3'], [2200, '#3f007d']],
+    legendLabels: ['$0', '$800', '$1.2k', '$1.6k', '$2.2k+'],
+    formatPopup: v => v == null ? 'n/a' : '$' + Number(v).toLocaleString() + '/mo',
+    legendGradient: 'linear-gradient(to right,#fcfbfd,#dadaeb,#9e9ac8,#6a51a3,#3f007d)',
+  },
+  owner_occ_rate: {
+    label: 'Owner-occupancy rate (ACS 2023)',
+    property: 'owner_occ_rate',
+    nullCheck: ['==', ['get', 'owner_occ_rate'], null],
+    nullColor: 'rgba(180,180,180,0.55)',
+    nullLabel: 'No data',
+    stops: [[0, '#fff7ec'], [25, '#fdd49e'], [50, '#fc8d59'], [65, '#d7301f'], [80, '#7f0000']],
+    legendLabels: ['0%', '25%', '50%', '65%', '80%+'],
+    formatPopup: v => v == null ? 'n/a' : `${parseFloat(v).toFixed(1)}%`,
+    legendGradient: 'linear-gradient(to right,#fff7ec,#fdd49e,#fc8d59,#d7301f,#7f0000)',
+  },
+  vacancy_rate: {
+    label: 'Vacancy rate (ACS 2023)',
+    property: 'vacancy_rate',
+    nullCheck: ['==', ['get', 'vacancy_rate'], null],
+    nullColor: 'rgba(180,180,180,0.55)',
+    nullLabel: 'No data',
+    stops: [[0, '#ffffd9'], [5, '#edf8b1'], [10, '#7fcdbb'], [20, '#1d91c0'], [35, '#081d58']],
+    legendLabels: ['0%', '5%', '10%', '20%', '35%+'],
+    formatPopup: v => v == null ? 'n/a' : `${parseFloat(v).toFixed(1)}%`,
+    legendGradient: 'linear-gradient(to right,#ffffd9,#edf8b1,#7fcdbb,#1d91c0,#081d58)',
+  },
+  pct_single_family: {
+    label: 'Single-family housing share (ACS 2023)',
+    property: 'pct_single_family',
+    nullCheck: ['==', ['get', 'pct_single_family'], null],
+    nullColor: 'rgba(180,180,180,0.55)',
+    nullLabel: 'No data',
+    stops: [[0, '#f7fcf0'], [25, '#ccebc5'], [50, '#7bccc4'], [70, '#2b8cbe'], [90, '#084081']],
+    legendLabels: ['0%', '25%', '50%', '70%', '90%+'],
+    formatPopup: v => v == null ? 'n/a' : `${parseFloat(v).toFixed(1)}%`,
+    legendGradient: 'linear-gradient(to right,#f7fcf0,#ccebc5,#7bccc4,#2b8cbe,#084081)',
+  },
+  median_year_built: {
+    label: 'Median year built (ACS 2023)',
+    property: 'median_year_built',
+    nullCheck: ['==', ['get', 'median_year_built'], null],
+    nullColor: 'rgba(180,180,180,0.55)',
+    nullLabel: 'No data',
+    stops: [[1940, '#7f3b08'], [1960, '#b35806'], [1980, '#e08214'], [2000, '#8073ac'], [2015, '#40004b']],
+    legendLabels: ['~1940', '~1960', '~1980', '~2000', '~2015+'],
+    formatPopup: v => v == null ? 'n/a' : String(Math.round(v)),
+    legendGradient: 'linear-gradient(to right,#7f3b08,#b35806,#e08214,#8073ac,#40004b)',
+  },
+  pct_bachelors_plus: {
+    label: "Bachelor's degree or higher (ACS 2023)",
+    property: 'pct_bachelors_plus',
+    nullCheck: ['==', ['get', 'pct_bachelors_plus'], null],
+    nullColor: 'rgba(180,180,180,0.55)',
+    nullLabel: 'No data',
+    stops: [[0, '#f7f4f9'], [15, '#d4b9da'], [30, '#c994c7'], [50, '#dd1c77'], [70, '#67001f']],
+    legendLabels: ['0%', '15%', '30%', '50%', '70%+'],
+    formatPopup: v => v == null ? 'n/a' : `${parseFloat(v).toFixed(1)}%`,
+    legendGradient: 'linear-gradient(to right,#f7f4f9,#d4b9da,#c994c7,#dd1c77,#67001f)',
+  },
+  unemployment_rate: {
+    label: 'Unemployment rate (ACS 2023)',
+    property: 'unemployment_rate',
+    nullCheck: ['==', ['get', 'unemployment_rate'], null],
+    nullColor: 'rgba(180,180,180,0.55)',
+    nullLabel: 'No data',
+    stops: [[0, '#fff5eb'], [3, '#fdd0a2'], [6, '#fd8d3c'], [10, '#d94701'], [18, '#7f2704']],
+    legendLabels: ['0%', '3%', '6%', '10%', '18%+'],
+    formatPopup: v => v == null ? 'n/a' : `${parseFloat(v).toFixed(1)}%`,
+    legendGradient: 'linear-gradient(to right,#fff5eb,#fdd0a2,#fd8d3c,#d94701,#7f2704)',
+  },
+  pct_wfh: {
+    label: 'Work from home share (ACS 2023)',
+    property: 'pct_wfh',
+    nullCheck: ['==', ['get', 'pct_wfh'], null],
+    nullColor: 'rgba(180,180,180,0.55)',
+    nullLabel: 'No data',
+    stops: [[0, '#f0f9e8'], [5, '#bae4bc'], [10, '#7bccc4'], [20, '#2b8cbe'], [35, '#0868ac']],
+    legendLabels: ['0%', '5%', '10%', '20%', '35%+'],
+    formatPopup: v => v == null ? 'n/a' : `${parseFloat(v).toFixed(1)}%`,
+    legendGradient: 'linear-gradient(to right,#f0f9e8,#bae4bc,#7bccc4,#2b8cbe,#0868ac)',
   },
 };
 
@@ -510,6 +620,14 @@ map.on('click', 'census-fill', (e) => {
         <span class="label">Median income</span>
         <span class="value">$${Number(p.median_income).toLocaleString()}</span>
       </div>` : ''}
+      ${p.poverty_rate != null ? `<div class="tract-stat">
+        <span class="label">Poverty rate</span>
+        <span class="value">${parseFloat(p.poverty_rate).toFixed(1)}%</span>
+      </div>` : ''}
+      ${p.median_home_value != null ? `<div class="tract-stat">
+        <span class="label">Median home value</span>
+        <span class="value">$${Number(p.median_home_value).toLocaleString()}</span>
+      </div>` : ''}
       ${highlight}
       ${growthBadge}
       ${noteEl}
@@ -597,9 +715,21 @@ window.charlestonMap = {
       'growth': 'growth_pct', 'population growth': 'growth_pct', '2010 to 2020': 'growth_pct',
       'population': 'pop_2020', 'pop': 'pop_2020', '2020 population': 'pop_2020',
       'annual population': 'pop_by_year', 'population by year': 'pop_by_year', 'year': 'pop_by_year',
-      'income': 'median_income', 'household income': 'median_income',
+      'income': 'median_income', 'household income': 'median_income', 'wealth': 'median_income',
       'age': 'median_age', 'median age': 'median_age',
       'diversity': 'pct_nonwhite', 'non-white': 'pct_nonwhite', 'race': 'pct_nonwhite',
+      'poverty': 'poverty_rate', 'poor': 'poverty_rate',
+      'home value': 'median_home_value', 'home values': 'median_home_value',
+      'housing value': 'median_home_value', 'property value': 'median_home_value',
+      'rent': 'median_gross_rent', 'rents': 'median_gross_rent', 'rental': 'median_gross_rent',
+      'owners': 'owner_occ_rate', 'ownership': 'owner_occ_rate', 'owner occupancy': 'owner_occ_rate',
+      'vacancy': 'vacancy_rate', 'vacant': 'vacancy_rate',
+      'single family': 'pct_single_family', 'single-family': 'pct_single_family', 'housing type': 'pct_single_family',
+      'year built': 'median_year_built', 'housing age': 'median_year_built', 'age of housing': 'median_year_built',
+      'education': 'pct_bachelors_plus', 'college': 'pct_bachelors_plus',
+      'bachelors': 'pct_bachelors_plus', 'degree': 'pct_bachelors_plus',
+      'unemployment': 'unemployment_rate', 'jobs': 'unemployment_rate',
+      'work from home': 'pct_wfh', 'remote work': 'pct_wfh', 'wfh': 'pct_wfh',
     };
     const key = aliases[String(metricKey).toLowerCase()] || metricKey;
     if (!METRICS[key]) return { success: false, error: `Unknown metric: "${metricKey}". Available: ${Object.keys(METRICS).join(', ')}.` };

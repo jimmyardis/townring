@@ -2,14 +2,19 @@
   "city": "Columbia",
   "state": "SC",
   "county": "Richland",
+  "counties": [
+    "Richland"
+  ],
   "fips_state": "45",
-  "fips_county": "079",
+  "fips_county": [
+    "079"
+  ],
   "center": {
     "lng": -81.0348,
     "lat": 34.0007
   },
+  "acs_vintage": 2023,
   "total_tracts": 98,
-  "greater_area_tracts": 92,
   "pop_2020": 414660,
   "pop_2010": 282083,
   "growth_pct_2010_2020": 47.0,
@@ -23,7 +28,8 @@
       "2019": 411357,
       "2020": 414660,
       "2021": 414719,
-      "2022": 416161
+      "2022": 416161,
+      "2023": 418725
     }
   }
 }
