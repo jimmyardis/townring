@@ -228,9 +228,12 @@ const TOOLS = {
   // to the client, we execute on the map, return a confirmation.
   // Voice agent says "flying you to White Rock" while the map flies.
   // ============================================================
-  fly_to({ place, target, location }) {
-    const p = place || target || location;
+  fly_to_place({ place, name, target, location }) {
+    const p = place || name || target || location;
     return window.chapinMap?.flyTo?.(p) ?? { error: 'Map control not initialized.' };
+  },
+  fly_to({ place, name, target, location }) {
+    return this.fly_to_place({ place, name, target, location });
   },
 
   set_metric({ metric }) {

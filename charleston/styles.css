@@ -538,7 +538,7 @@ html, body {
   .controls { top: auto; bottom: 150px; right: 14px; flex-direction: row; flex-wrap: wrap; justify-content: flex-end; }
   .controls button { min-width: 0; font-size: 11px; padding: 8px 11px; }
   .metric-selector { bottom: 220px; right: 14px; left: 14px; min-width: 0; }
-  .legend { bottom: 220px; right: 12px; left: 12px; width: auto; }
+  .legend { bottom: 80px; right: 12px; left: auto; width: 180px; max-height: 42vh; overflow-y: auto; }
   .voice-cluster { bottom: 70px; }
   .transcript { max-width: calc(100vw - 48px); font-size: 12.5px; }
   .attribution { bottom: 10px; left: 12px; right: 12px; font-size: 10px; text-align: center; }

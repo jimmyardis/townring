@@ -176,9 +176,12 @@ const TOOLS = {
   },
 
   // Map control tools
-  fly_to({ place, target, location }) {
-    const p = place || target || location;
+  fly_to_place({ place, name, target, location }) {
+    const p = place || name || target || location;
     return window.columbiaMap?.flyTo?.(p) ?? { error: 'Map control not initialized.' };
+  },
+  fly_to({ place, name, target, location }) {
+    return this.fly_to_place({ place, name, target, location });
   },
 
   set_metric({ metric }) {

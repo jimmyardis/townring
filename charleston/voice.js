@@ -296,8 +296,9 @@ const TOOLS = {
 
   // ---- Client-side map control tools ----
 
-  fly_to_place({ name }) {
-    return window.charlestonMap?.flyToPlace?.(name) ?? { error: 'Map not initialized.' };
+  fly_to_place({ place, name, target, location }) {
+    const p = place || name || target || location;
+    return window.charlestonMap?.flyToPlace?.(p) ?? { error: 'Map not initialized.' };
   },
 
   set_metric({ metric }) {
