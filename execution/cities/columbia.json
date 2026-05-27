@@ -3,12 +3,13 @@
   "state": "SC",
   "county": "Richland",
   "fips_state": "45",
-  "fips_county": "079",
+  "fips_county": ["079", "063"],
+  "county_names": {"079": "Richland", "063": "Lexington"},
   "center_lng": -81.0348,
   "center_lat": 34.0007,
   "millage": 447.4,
   "lost_rate": 0.0,
   "where_clause": "TAXAREA='75'",
   "scdot_layer": 40,
-  "notes": "TAXAREA 75 = City of Columbia. Millage 447.4 needs verification against Richland County Auditor. No LOST credit confirmed for Richland County."
+  "notes": "TAXAREA 75 = City of Columbia. Millage 447.4 needs verification against Richland County Auditor. No LOST credit confirmed for Richland County. Both Richland (079) and Lexington (063) counties included for full metro coverage."
 }

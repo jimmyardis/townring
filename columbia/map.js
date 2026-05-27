@@ -1,6 +1,6 @@
 /* ============================================================
    The Columbia Map
-   Mapbox 3D map of Columbia SC + Richland County, with:
+   Mapbox 3D map of Columbia SC + Richland & Lexington Counties, with:
      - Census tract choropleth (switchable across 5 metrics)
      - Place boundaries (Columbia, Forest Acres, Cayce, etc.)
      - Tax-productivity parcel overlay ($/acre)
@@ -49,9 +49,9 @@ const TAX_ACRE_STOPS = [
   [300000,  '#4a0a0a'],
 ];
 
-// Bounding box of Richland County (approximate)
+// Bounding box of Richland + Lexington Counties (approximate)
 const GREATER_COLUMBIA_BOUNDS = [
-  [-81.40, 33.75],  // SW corner [lng, lat]
+  [-81.60, 33.65],  // SW corner [lng, lat]
   [-80.55, 34.30],  // NE corner
 ];
 
@@ -753,6 +753,13 @@ const FLY_TARGETS = {
   'eastover':              { center: [-80.6877, 33.8892], zoom: 13,   pitch: 40, bearing:  0 },
   'arcadia lakes':         { center: [-80.9699, 34.0557], zoom: 14,   pitch: 40, bearing:  0 },
   'richland county':       { center: [-80.88,   34.04],   zoom: 10,   pitch: 20, bearing:  0 },
+  'lexington county':      { center: [-81.25,   33.93],   zoom: 10,   pitch: 20, bearing:  0 },
+  'lexington':             { center: [-81.2343, 33.9843], zoom: 13,   pitch: 40, bearing:  0 },
+  'lexington sc':          { center: [-81.2343, 33.9843], zoom: 13,   pitch: 40, bearing:  0 },
+  'batesburg':             { center: [-81.5384, 33.9107], zoom: 13,   pitch: 40, bearing:  0 },
+  'batesburg-leesville':   { center: [-81.5384, 33.9107], zoom: 13,   pitch: 40, bearing:  0 },
+  'swansea':               { center: [-81.1025, 33.7391], zoom: 13,   pitch: 40, bearing:  0 },
+  'gilbert':               { center: [-81.3963, 33.9175], zoom: 13,   pitch: 40, bearing:  0 },
   'congaree river':        { center: [-81.10,   33.97],   zoom: 12,   pitch: 40, bearing:  0 },
   'congaree':              { center: [-81.10,   33.97],   zoom: 12,   pitch: 40, bearing:  0 },
   'home':   { center: COLUMBIA_CENTER, zoom: DEFAULT_ZOOM, pitch: DEFAULT_PITCH, bearing: DEFAULT_BEARING },
@@ -769,7 +776,7 @@ window.columbiaMap = {
       const matchedKey = Object.keys(FLY_TARGETS).find(k => key.includes(k) || k.includes(key));
       if (matchedKey) target = FLY_TARGETS[matchedKey];
     }
-    if (!target) return { success: false, error: `Don't know where "${placeName}" is. Try State House, USC, Five Points, Vista, Forest Acres, Cayce, or West Columbia.` };
+    if (!target) return { success: false, error: `Don't know where "${placeName}" is. Try State House, USC, Five Points, Vista, Forest Acres, Cayce, West Columbia, Lexington, or Irmo.` };
     map.flyTo({ ...target, duration: 2400, essential: true });
     return { success: true, flew_to: placeName, center: target.center, zoom: target.zoom };
   },
