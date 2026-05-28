@@ -1,0 +1,13 @@
+{
+  "city": "Sumter",
+  "state": "SC",
+  "county": "Sumter",
+  "fips_state": "45",
+  "fips_county": "085",
+  "center_lng": -80.3412,
+  "center_lat": 33.9204,
+  "millage": 447.9,
+  "lost_rate": 0.0,
+  "scdot_layer": 42,
+  "notes": "City of Sumter is the county seat of Sumter County (FIPS 45085). Shaw Air Force Base occupies a large tract in the northwest part of the county. Millage rate approximate — verify against Sumter County Auditor."
+}

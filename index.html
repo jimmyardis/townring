@@ -296,6 +296,7 @@
   .city.chapin    { animation-delay: 2.5s; }
   .city.columbia  { animation-delay: 2.8s; }
   .city.charleston{ animation-delay: 3.1s; }
+  .city.sumter    { animation-delay: 3.4s; }
 
   @keyframes city-appear {
     from { opacity: 0; }
@@ -332,6 +333,10 @@
   .city.charleston .r1 { animation: pulse-ring 3.4s ease-out 4.4s infinite; }
   .city.charleston .r2 { animation: pulse-ring 3.4s ease-out 5.5s infinite; }
   .city.charleston .r3 { animation: pulse-ring 3.4s ease-out 6.6s infinite; }
+
+  .city.sumter    .r1 { animation: pulse-ring 3.4s ease-out 4.8s infinite; }
+  .city.sumter    .r2 { animation: pulse-ring 3.4s ease-out 5.9s infinite; }
+  .city.sumter    .r3 { animation: pulse-ring 3.4s ease-out 7.0s infinite; }
 
   @keyframes pulse-ring {
     0%   { r: 4;  opacity: 0.85; stroke-width: 1.4; }
@@ -687,7 +692,7 @@
       <h1>Talk to your <em>town.</em></h1>
       <p class="lead">A phone number for every place. Voice-driven maps that explain themselves — demographics, economics, weather, crime, stories. Speak to the map, or call the number.</p>
       <div class="hero-cta">
-        <span>Three lines live — Chapin, Columbia, Charleston</span>
+        <span>Four lines live — Chapin, Columbia, Charleston, Sumter</span>
         <span class="arrow">→</span>
       </div>
     </div>
@@ -763,6 +768,17 @@
           <text class="city-label" text-anchor="end" x="614" y="595">Charleston</text>
           <text class="city-coord" text-anchor="end" x="614" y="609">32.78°N · 79.93°W</text>
         </g>
+
+        <!-- SUMTER — live -->
+        <g class="city live sumter">
+          <circle class="ring-pulse r1" cx="612" cy="378" r="4"/>
+          <circle class="ring-pulse r2" cx="612" cy="378" r="4"/>
+          <circle class="ring-pulse r3" cx="612" cy="378" r="4"/>
+          <circle class="dot" cx="612" cy="378" r="5"/>
+          <line class="city-tick" x1="612" y1="378" x2="648" y2="348"/>
+          <text class="city-label" x="654" y="344">Sumter</text>
+          <text class="city-coord" x="654" y="358">33.92°N · 80.34°W</text>
+        </g>
       </svg>
     </div>
   </section>
@@ -772,7 +788,7 @@
     <div class="section-head">
       <h2>Lines now ringing.</h2>
       <div class="section-meta">
-        003 stations <span class="divider">/</span> 003 live <span class="divider">/</span> SC
+        004 stations <span class="divider">/</span> 004 live <span class="divider">/</span> SC
       </div>
     </div>
 
@@ -782,7 +798,7 @@
       <a class="city-card live" href="/chapin/">
         <div class="card-status">
           <span class="status-pill"><span class="indicator"></span>Live now</span>
-          <span class="card-num">01 / 03</span>
+          <span class="card-num">01 / 04</span>
         </div>
         <div class="card-headline">
           <div class="card-city">Chapin</div>
@@ -804,17 +820,39 @@
       <a class="city-card live" href="/columbia/">
         <div class="card-status">
           <span class="status-pill"><span class="indicator"></span>Live now</span>
-          <span class="card-num">02 / 03</span>
+          <span class="card-num">02 / 04</span>
         </div>
         <div class="card-headline">
           <div class="card-city">Columbia</div>
-          <div class="card-state">South Carolina · State Capital · Richland County (98 tracts)</div>
+          <div class="card-state">South Carolina · State Capital · Richland + Lexington (190 tracts)</div>
         </div>
         <dl class="card-data">
-          <div><dt>Pop. (2020)</dt><dd>414,660</dd></div>
+          <div><dt>Pop. (metro, 2020)</dt><dd>709,693</dd></div>
           <div><dt>Layers</dt><dd>6 active</dd></div>
           <div><dt>Voice tools</dt><dd>9 wired</dd></div>
           <div><dt>Coords</dt><dd>34.00°N · 81.03°W</dd></div>
+        </dl>
+        <div class="card-cta">
+          <span>Open the line</span>
+          <span class="arrow-out">↗</span>
+        </div>
+      </a>
+
+      <!-- SUMTER -->
+      <a class="city-card live" href="/sumter/">
+        <div class="card-status">
+          <span class="status-pill"><span class="indicator"></span>Live now</span>
+          <span class="card-num">04 / 04</span>
+        </div>
+        <div class="card-headline">
+          <div class="card-city">Sumter</div>
+          <div class="card-state">South Carolina · Shaw AFB · Sumter County (26 tracts)</div>
+        </div>
+        <dl class="card-data">
+          <div><dt>Pop. (2020)</dt><dd>106,675</dd></div>
+          <div><dt>Layers</dt><dd>15 active</dd></div>
+          <div><dt>Voice tools</dt><dd>8 wired</dd></div>
+          <div><dt>Coords</dt><dd>33.92°N · 80.34°W</dd></div>
         </dl>
         <div class="card-cta">
           <span>Open the line</span>
@@ -826,7 +864,7 @@
       <a class="city-card live" href="/charleston/">
         <div class="card-status">
           <span class="status-pill"><span class="indicator"></span>Live now</span>
-          <span class="card-num">03 / 03</span>
+          <span class="card-num">03 / 04</span>
         </div>
         <div class="card-headline">
           <div class="card-city">Charleston</div>
