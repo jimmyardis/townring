@@ -12,8 +12,8 @@ import Vapi from 'https://esm.sh/@vapi-ai/web@latest';
 // =============================================================
 // VAPI CREDENTIALS  ← paste your keys here
 // =============================================================
-const VAPI_PUBLIC_KEY   = 'PASTE_VAPI_PUBLIC_KEY';
-const VAPI_ASSISTANT_ID = 'PASTE_VAPI_ASSISTANT_ID';
+const VAPI_PUBLIC_KEY   = '046d7e78-64ab-404b-ad0e-e6c3e800bd41';
+const VAPI_ASSISTANT_ID = 'e569e4e4-4cb2-4806-a1aa-9888d2381318';
 
 // =============================================================
 // Data caches — loaded once at startup so tool calls are instant
