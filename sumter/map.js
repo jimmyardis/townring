@@ -138,8 +138,8 @@ const METRICS = {
   population_by_year: {
     label: 'Population (drag time slider)',
     isYearAware: true,
-    years: [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023],
-    defaultYear: 2023,
+    years: [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    defaultYear: 2024,
     propertyTemplate: 'pop_{year}',
     nullColor: 'rgba(180, 180, 180, 0.55)',
     nullLabel: 'No data for this year',
@@ -155,7 +155,7 @@ const METRICS = {
   },
 
   poverty_rate: {
-    label: 'Poverty rate (ACS 2023)',
+    label: 'Poverty rate (ACS 2024)',
     property: 'poverty_rate',
     nullCheck: ['==', ['get', 'poverty_rate'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -167,7 +167,7 @@ const METRICS = {
   },
 
   median_home_value: {
-    label: 'Median home value (ACS 2023)',
+    label: 'Median home value (ACS 2024)',
     property: 'median_home_value',
     nullCheck: ['==', ['get', 'median_home_value'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -179,7 +179,7 @@ const METRICS = {
   },
 
   median_gross_rent: {
-    label: 'Median gross rent (ACS 2023)',
+    label: 'Median gross rent (ACS 2024)',
     property: 'median_gross_rent',
     nullCheck: ['==', ['get', 'median_gross_rent'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -191,7 +191,7 @@ const METRICS = {
   },
 
   owner_occ_rate: {
-    label: 'Owner-occupancy rate (ACS 2023)',
+    label: 'Owner-occupancy rate (ACS 2024)',
     property: 'owner_occ_rate',
     nullCheck: ['==', ['get', 'owner_occ_rate'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -203,7 +203,7 @@ const METRICS = {
   },
 
   vacancy_rate: {
-    label: 'Vacancy rate (ACS 2023)',
+    label: 'Vacancy rate (ACS 2024)',
     property: 'vacancy_rate',
     nullCheck: ['==', ['get', 'vacancy_rate'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -215,7 +215,7 @@ const METRICS = {
   },
 
   pct_single_family: {
-    label: 'Single-family housing share (ACS 2023)',
+    label: 'Single-family housing share (ACS 2024)',
     property: 'pct_single_family',
     nullCheck: ['==', ['get', 'pct_single_family'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -227,7 +227,7 @@ const METRICS = {
   },
 
   median_year_built: {
-    label: 'Median year built (ACS 2023)',
+    label: 'Median year built (ACS 2024)',
     property: 'median_year_built',
     nullCheck: ['==', ['get', 'median_year_built'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -239,7 +239,7 @@ const METRICS = {
   },
 
   pct_bachelors_plus: {
-    label: "Bachelor's degree or higher (ACS 2023)",
+    label: "Bachelor's degree or higher (ACS 2024)",
     property: 'pct_bachelors_plus',
     nullCheck: ['==', ['get', 'pct_bachelors_plus'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -251,7 +251,7 @@ const METRICS = {
   },
 
   unemployment_rate: {
-    label: 'Unemployment rate (ACS 2023)',
+    label: 'Unemployment rate (ACS 2024)',
     property: 'unemployment_rate',
     nullCheck: ['==', ['get', 'unemployment_rate'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -263,7 +263,7 @@ const METRICS = {
   },
 
   pct_wfh: {
-    label: 'Work from home share (ACS 2023)',
+    label: 'Work from home share (ACS 2024)',
     property: 'pct_wfh',
     nullCheck: ['==', ['get', 'pct_wfh'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -275,7 +275,7 @@ const METRICS = {
   },
 };
 
-const DEFAULT_METRIC = 'growth_pct';
+const DEFAULT_METRIC = 'population_by_year';
 let currentMetric = DEFAULT_METRIC;
 let currentYear = null;
 

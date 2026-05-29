@@ -34,7 +34,7 @@ TIGER_BASE  = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb"
 CENSUS_BASE = "https://api.census.gov/data"
 
 # ACS 5-year years for the year slider (update max year when new vintage ships)
-ACS_YEARS = list(range(2014, 2024))   # 2014–2023
+ACS_YEARS = list(range(2014, 2025))   # 2014–2024
 
 # Year-built bucket midpoints for B25034_002E … B25034_011E
 YEAR_BUILT_MIDPOINTS = [2022, 2015, 2005, 1995, 1985, 1975, 1965, 1955, 1945, 1930]
@@ -399,8 +399,8 @@ def main():
     parser.add_argument("--key", default=os.environ.get("CENSUS_API_KEY", ""))
     parser.add_argument("--radius", type=float, default=25.0,
                         help="km radius for 'greater area' tagging")
-    parser.add_argument("--demo-year", type=int, default=2023,
-                        help="ACS 5-year vintage for snapshot demographics (default 2023)")
+    parser.add_argument("--demo-year", type=int, default=2024,
+                        help="ACS 5-year vintage for snapshot demographics (default 2024)")
     args = parser.parse_args()
 
     if not args.key:

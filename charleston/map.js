@@ -53,10 +53,10 @@ const METRICS = {
   pop_by_year: {
     label: 'Population by year (ACS)',
     isYearAware: true,
-    years: [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023],
-    defaultYear: 2023,
+    years: [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    defaultYear: 2024,
     propertyTemplate: 'pop_{year}',
-    nullCheck: ['!', ['has', 'pop_2023']],
+    nullCheck: ['!', ['has', 'pop_2024']],
     nullColor: 'rgba(180,180,180,0.55)',
     nullLabel: 'No data',
     stops: [[0, '#fff5eb'], [1000, '#fdd0a2'], [3000, '#fd8d3c'], [6000, '#d94701'], [10000, '#7f2704']],
@@ -98,7 +98,7 @@ const METRICS = {
     legendGradient: 'linear-gradient(to right,#f7fcfd,#ccece6,#66c2a4,#2ca25f,#006d2c)',
   },
   poverty_rate: {
-    label: 'Poverty rate (ACS 2023)',
+    label: 'Poverty rate (ACS 2024)',
     property: 'poverty_rate',
     nullCheck: ['==', ['get', 'poverty_rate'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -109,7 +109,7 @@ const METRICS = {
     legendGradient: 'linear-gradient(to right,#fff5f0,#fdd0a2,#fc8d59,#d7191c,#7f0000)',
   },
   median_home_value: {
-    label: 'Median home value (ACS 2023)',
+    label: 'Median home value (ACS 2024)',
     property: 'median_home_value',
     nullCheck: ['==', ['get', 'median_home_value'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -120,7 +120,7 @@ const METRICS = {
     legendGradient: 'linear-gradient(to right,#f7fbff,#c6dbef,#6baed6,#2171b5,#08306b)',
   },
   median_gross_rent: {
-    label: 'Median gross rent (ACS 2023)',
+    label: 'Median gross rent (ACS 2024)',
     property: 'median_gross_rent',
     nullCheck: ['==', ['get', 'median_gross_rent'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -131,7 +131,7 @@ const METRICS = {
     legendGradient: 'linear-gradient(to right,#fcfbfd,#dadaeb,#9e9ac8,#6a51a3,#3f007d)',
   },
   owner_occ_rate: {
-    label: 'Owner-occupancy rate (ACS 2023)',
+    label: 'Owner-occupancy rate (ACS 2024)',
     property: 'owner_occ_rate',
     nullCheck: ['==', ['get', 'owner_occ_rate'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -142,7 +142,7 @@ const METRICS = {
     legendGradient: 'linear-gradient(to right,#fff7ec,#fdd49e,#fc8d59,#d7301f,#7f0000)',
   },
   vacancy_rate: {
-    label: 'Vacancy rate (ACS 2023)',
+    label: 'Vacancy rate (ACS 2024)',
     property: 'vacancy_rate',
     nullCheck: ['==', ['get', 'vacancy_rate'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -153,7 +153,7 @@ const METRICS = {
     legendGradient: 'linear-gradient(to right,#ffffd9,#edf8b1,#7fcdbb,#1d91c0,#081d58)',
   },
   pct_single_family: {
-    label: 'Single-family housing share (ACS 2023)',
+    label: 'Single-family housing share (ACS 2024)',
     property: 'pct_single_family',
     nullCheck: ['==', ['get', 'pct_single_family'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -164,7 +164,7 @@ const METRICS = {
     legendGradient: 'linear-gradient(to right,#f7fcf0,#ccebc5,#7bccc4,#2b8cbe,#084081)',
   },
   median_year_built: {
-    label: 'Median year built (ACS 2023)',
+    label: 'Median year built (ACS 2024)',
     property: 'median_year_built',
     nullCheck: ['==', ['get', 'median_year_built'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -175,7 +175,7 @@ const METRICS = {
     legendGradient: 'linear-gradient(to right,#7f3b08,#b35806,#e08214,#8073ac,#40004b)',
   },
   pct_bachelors_plus: {
-    label: "Bachelor's degree or higher (ACS 2023)",
+    label: "Bachelor's degree or higher (ACS 2024)",
     property: 'pct_bachelors_plus',
     nullCheck: ['==', ['get', 'pct_bachelors_plus'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -186,7 +186,7 @@ const METRICS = {
     legendGradient: 'linear-gradient(to right,#f7f4f9,#d4b9da,#c994c7,#dd1c77,#67001f)',
   },
   unemployment_rate: {
-    label: 'Unemployment rate (ACS 2023)',
+    label: 'Unemployment rate (ACS 2024)',
     property: 'unemployment_rate',
     nullCheck: ['==', ['get', 'unemployment_rate'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -197,7 +197,7 @@ const METRICS = {
     legendGradient: 'linear-gradient(to right,#fff5eb,#fdd0a2,#fd8d3c,#d94701,#7f2704)',
   },
   pct_wfh: {
-    label: 'Work from home share (ACS 2023)',
+    label: 'Work from home share (ACS 2024)',
     property: 'pct_wfh',
     nullCheck: ['==', ['get', 'pct_wfh'], null],
     nullColor: 'rgba(180,180,180,0.55)',
@@ -296,8 +296,8 @@ map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'bottom
 // =============================================================
 // 8. CHOROPLETH EXPRESSION BUILDER
 // =============================================================
-let currentMetric = 'growth_pct';
-let currentYear   = 2022;
+let currentMetric = 'pop_by_year';
+let currentYear   = 2024;
 
 function buildFillColorExpression(metricKey, year) {
   const m = METRICS[metricKey];
