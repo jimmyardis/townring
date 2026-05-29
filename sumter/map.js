@@ -136,7 +136,7 @@ const METRICS = {
   },
 
   population_by_year: {
-    label: 'Population (drag time slider)',
+    label: 'Population',
     isYearAware: true,
     years: [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
     defaultYear: 2024,
@@ -378,7 +378,7 @@ map.on('load', async () => {
     map.addLayer({
       id: 'census-fill', type: 'fill', source: 'sumter-area-tracts', slot: 'bottom',
       paint: {
-        'fill-color': buildFillColorExpression(DEFAULT_METRIC),
+        'fill-color': buildFillColorExpression(DEFAULT_METRIC, METRICS[DEFAULT_METRIC].defaultYear),
         'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.85, 0.65],
       },
     });
@@ -440,6 +440,7 @@ map.on('load', async () => {
     new mapboxgl.Marker({ color: '#7B5C3A' }).setLngLat(landmark.coordinates).setPopup(popup).addTo(map);
   });
 
+  setMetric(DEFAULT_METRIC);
   console.log('🗺️  Sumter map loaded.');
 });
 

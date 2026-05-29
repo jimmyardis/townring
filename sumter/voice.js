@@ -144,7 +144,8 @@ const TOOLS = {
     return window.sumterMap?.flyTo?.(p) ?? { error: 'Map control not initialized.' };
   },
   fly_to({ place, name, target, location }) {
-    return this.fly_to_place({ place, name, target, location });
+    const p = place || name || target || location;
+    return window.sumterMap?.flyTo?.(p) ?? { error: 'Map control not initialized.' };
   },
 
   set_metric({ metric }) {
