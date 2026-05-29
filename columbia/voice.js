@@ -50,6 +50,10 @@ loadData();
 // =============================================================
 // TOOLS
 // =============================================================
+const num      = (v) => v == null ? 'n/a' : Number(v).toLocaleString();
+const pct      = (v) => v == null ? 'n/a' : (v >= 0 ? '+' : '') + Number(v).toFixed(1) + '%';
+const fmtYears = (obj) => Object.fromEntries(Object.entries(obj || {}).map(([k, v]) => [k, num(v)]));
+
 const TOOLS = {
   get_place_info({ name }) {
     if (!DATA.loaded) return { error: 'Data not loaded yet — try again in a moment.' };
@@ -63,8 +67,8 @@ const TOOLS = {
           return {
             name: `${county} County, SC`,
             type: 'county',
-            population_by_year: years,
-            growth_2010_2020_pct: DATA.summary.growth_pct_2010_2020,
+            population_by_year: fmtYears(years),
+            growth_2010_2020_pct: pct(DATA.summary.growth_pct_2010_2020),
             note: 'Richland County is home to Columbia, the state capital of South Carolina.',
           };
         }
@@ -101,9 +105,9 @@ const TOOLS = {
           name: p.NAME,
           type: 'census_tract',
           county: `${p.county_name} County, SC`,
-          population_2010: p.pop_2010,
-          population_2020: p.pop_2020,
-          growth_pct_2010_to_2020: p.growth_pct,
+          population_2010: num(p.pop_2010),
+          population_2020: num(p.pop_2020),
+          growth_pct_2010_to_2020: pct(p.growth_pct),
           note: p.has_2010 ? null : 'This tract did not exist in 2010 — it was split from a larger tract.',
         };
       }
@@ -128,9 +132,9 @@ const TOOLS = {
       tracts: pool.slice(0, count).map(f => ({
         name: f.properties.NAME,
         tract_id: f.properties.TRACT,
-        population_2010: f.properties.pop_2010,
-        population_2020: f.properties.pop_2020,
-        growth_pct: f.properties.growth_pct,
+        population_2010: num(f.properties.pop_2010),
+        population_2020: num(f.properties.pop_2020),
+        growth_pct: pct(f.properties.growth_pct),
       })),
     };
   },
@@ -140,9 +144,9 @@ const TOOLS = {
     const yearsByCounty = DATA.summary?.county_population_by_year || {};
     const result = {};
     for (const [k, data] of Object.entries(yearsByCounty)) {
-      result[k] = year ? { [year]: data[year] } : data;
+      result[k] = year ? { [year]: num(data[year]) } : fmtYears(data);
     }
-    return { years: result, summary: { pop_2020: DATA.summary.pop_2020, pop_2010: DATA.summary.pop_2010, growth_pct: DATA.summary.growth_pct_2010_2020 } };
+    return { years: result, summary: { pop_2020: num(DATA.summary.pop_2020), pop_2010: num(DATA.summary.pop_2010), growth_pct: pct(DATA.summary.growth_pct_2010_2020) } };
   },
 
   get_productivity_info({ area = 'all' }) {

@@ -55,6 +55,10 @@ loadData();
 // Each tool is a pure function that takes structured args and
 // returns a JSON result the LLM weaves into its response.
 // =============================================================
+const num      = (v) => v == null ? 'n/a' : Number(v).toLocaleString();
+const pct      = (v) => v == null ? 'n/a' : (v >= 0 ? '+' : '') + Number(v).toFixed(1) + '%';
+const fmtYears = (obj) => Object.fromEntries(Object.entries(obj || {}).map(([k, v]) => [k, num(v)]));
+
 const TOOLS = {
   /**
    * Look up info about any named place — town, CDP, ZIP, county, tract.
@@ -73,10 +77,10 @@ const TOOLS = {
           return {
             name: `${county} County, SC`,
             type: 'county',
-            population_by_year: years,
+            population_by_year: fmtYears(years),
             growth_2000_2020_pct: years[2000] && years[2020]
-              ? Math.round((years[2020] - years[2000]) / years[2000] * 1000) / 10
-              : null,
+              ? pct(Math.round((years[2020] - years[2000]) / years[2000] * 1000) / 10)
+              : 'n/a',
             note: county === 'Lexington'
               ? 'Most of Chapin proper is in Lexington County.'
               : 'White Rock and the eastern Greater Chapin area are in Richland County.',
@@ -117,9 +121,9 @@ const TOOLS = {
           name: p.NAME,
           type: 'census_tract',
           county: `${p.county_name} County, SC`,
-          population_2010: p.pop_2010,
-          population_2020: p.pop_2020,
-          growth_pct_2010_to_2020: p.growth_pct,
+          population_2010: num(p.pop_2010),
+          population_2020: num(p.pop_2020),
+          growth_pct_2010_to_2020: pct(p.growth_pct),
           note: p.has_2010
             ? null
             : 'This tract did not exist in 2010 — it was created when an older tract was split (often a fast-growth area).',
@@ -160,9 +164,9 @@ const TOOLS = {
         name: f.properties.NAME,
         tract_id: f.properties.TRACT,
         county: f.properties.county_name,
-        population_2010: f.properties.pop_2010,
-        population_2020: f.properties.pop_2020,
-        growth_pct: f.properties.growth_pct,
+        population_2010: num(f.properties.pop_2010),
+        population_2020: num(f.properties.pop_2020),
+        growth_pct: pct(f.properties.growth_pct),
       })),
     };
   },
@@ -183,7 +187,7 @@ const TOOLS = {
       );
       if (!matched) continue;
       const data = yearsByCounty[matched];
-      result[matched] = year ? { [year]: data[year] } : data;
+      result[matched] = year ? { [year]: num(data[year]) } : fmtYears(data);
     }
     return Object.keys(result).length === 0
       ? { error: `No data for county "${county}".` }

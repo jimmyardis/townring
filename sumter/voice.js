@@ -46,6 +46,10 @@ loadData();
 // =============================================================
 // TOOLS
 // =============================================================
+const num      = (v) => v == null ? 'n/a' : Number(v).toLocaleString();
+const pct      = (v) => v == null ? 'n/a' : (v >= 0 ? '+' : '') + Number(v).toFixed(1) + '%';
+const fmtYears = (obj) => Object.fromEntries(Object.entries(obj || {}).map(([k, v]) => [k, num(v)]));
+
 const TOOLS = {
 
   get_place_info({ name }) {
@@ -60,7 +64,7 @@ const TOOLS = {
           return {
             name: `${county} County, SC`,
             type: 'county',
-            population_by_year: years,
+            population_by_year: fmtYears(years),
             note: 'Sumter County is home to Shaw Air Force Base and the city of Sumter.',
           };
         }
@@ -97,9 +101,9 @@ const TOOLS = {
           name: p.NAME,
           type: 'census_tract',
           county: 'Sumter County, SC',
-          population_2010: p.pop_2010,
-          population_2020: p.pop_2020,
-          growth_pct_2010_to_2020: p.growth_pct,
+          population_2010: num(p.pop_2010),
+          population_2020: num(p.pop_2020),
+          growth_pct_2010_to_2020: pct(p.growth_pct),
         };
       }
     }
@@ -125,9 +129,9 @@ const TOOLS = {
       tracts: pool.slice(0, count).map(f => ({
         name: f.properties.NAME,
         tract_id: f.properties.TRACT,
-        population_2010: f.properties.pop_2010,
-        population_2020: f.properties.pop_2020,
-        growth_pct: f.properties.growth_pct,
+        population_2010: num(f.properties.pop_2010),
+        population_2020: num(f.properties.pop_2020),
+        growth_pct: pct(f.properties.growth_pct),
       })),
     };
   },
@@ -136,7 +140,7 @@ const TOOLS = {
     if (!DATA.loaded) return { error: 'Data not loaded yet.' };
     const data = DATA.summary?.county_population_by_year?.Sumter;
     if (!data) return { error: 'No county population data available.' };
-    return year ? { Sumter: { [year]: data[year] } } : { years: { Sumter: data } };
+    return year ? { Sumter: { [year]: num(data[year]) } } : { years: { Sumter: fmtYears(data) } };
   },
 
   fly_to_place({ place, name, target, location }) {

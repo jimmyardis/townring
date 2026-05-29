@@ -35,6 +35,10 @@ loadData();
 // =============================================================
 // TOOLS
 // =============================================================
+const num      = (v) => v == null ? 'n/a' : Number(v).toLocaleString();
+const pct      = (v) => v == null ? 'n/a' : (v >= 0 ? '+' : '') + Number(v).toFixed(1) + '%';
+const fmtYears = (obj) => Object.fromEntries(Object.entries(obj || {}).map(([k, v]) => [k, num(v)]));
+
 const TOOLS = {
 
   /**
@@ -51,9 +55,9 @@ const TOOLS = {
         name: 'Greater Charleston Tri-County Metro',
         type: 'metro_area',
         counties: 'Charleston, Berkeley, Dorchester',
-        population_2020: DATA.summary.pop_2020,
-        population_2010: DATA.summary.pop_2010,
-        growth_pct_2010_2020: DATA.summary.growth_pct_2010_2020,
+        population_2020: num(DATA.summary.pop_2020),
+        population_2010: num(DATA.summary.pop_2010),
+        growth_pct_2010_2020: pct(DATA.summary.growth_pct_2010_2020),
         note: 'Tri-county total. For individual county breakdowns use get_county_data.',
       };
     }
@@ -67,11 +71,11 @@ const TOOLS = {
         return {
           name: `${county} County, SC`,
           type: 'county',
-          population_2020: pop2020,
-          population_2010: pop2010,
+          population_2020: num(pop2020),
+          population_2010: num(pop2010),
           growth_2010_2020_pct: pop2010 && pop2020
-            ? Math.round((pop2020 - pop2010) / pop2010 * 1000) / 10 : null,
-          population_by_year: years,
+            ? pct(Math.round((pop2020 - pop2010) / pop2010 * 1000) / 10) : 'n/a',
+          population_by_year: fmtYears(years),
         };
       }
     }
@@ -92,12 +96,12 @@ const TOOLS = {
         // Enrich incorporated places with 2020 Census population
         const placePop = DATA.summary?.place_population?.[place.properties.BASENAME];
         if (placePop) {
-          result.population_2020 = placePop['2020'];
-          result.population_2010 = placePop['2010'] || null;
+          result.population_2020 = num(placePop['2020']);
+          result.population_2010 = num(placePop['2010']) || null;
           if (placePop['2020'] && placePop['2010']) {
-            result.growth_pct_2010_2020 = Math.round(
+            result.growth_pct_2010_2020 = pct(Math.round(
               (placePop['2020'] - placePop['2010']) / placePop['2010'] * 1000
-            ) / 10;
+            ) / 10);
           }
           result.population_source = '2020 Decennial Census';
         }
@@ -119,10 +123,10 @@ const TOOLS = {
           name: p.NAME,
           type: 'census_tract',
           county: `${p.county_name} County, SC`,
-          population_2020: p.pop_2020,
-          population_2010: p.pop_2010,
-          growth_pct_2010_to_2020: p.growth_pct,
-          median_income: p.median_income,
+          population_2020: num(p.pop_2020),
+          population_2010: num(p.pop_2010),
+          growth_pct_2010_to_2020: pct(p.growth_pct),
+          median_income: num(p.median_income),
           median_age: p.median_age,
           note: p.has_2010 ? null : 'New tract since 2010 — no clean 2010 comparison.',
         };
@@ -171,9 +175,9 @@ const TOOLS = {
       tracts: pool.slice(0, count).map(f => ({
         name: f.properties.NAME,
         county: f.properties.county_name,
-        population_2020: f.properties.pop_2020,
-        growth_pct: f.properties.growth_pct,
-        median_income: f.properties.median_income,
+        population_2020: num(f.properties.pop_2020),
+        growth_pct: pct(f.properties.growth_pct),
+        median_income: num(f.properties.median_income),
         median_age: f.properties.median_age,
         pct_nonwhite: f.properties.pct_nonwhite,
       })),
@@ -193,7 +197,7 @@ const TOOLS = {
       const matched = Object.keys(yearsByCounty).find(c => c.toLowerCase().includes(String(k).toLowerCase()));
       if (!matched) continue;
       const data = yearsByCounty[matched];
-      result[matched] = year ? { [year]: data[year] || data[String(year)] } : data;
+      result[matched] = year ? { [year]: num(data[year] || data[String(year)]) } : fmtYears(data);
     }
     return Object.keys(result).length === 0
       ? { error: `No data for county "${county}". Options: Charleston, Berkeley, Dorchester.` }
@@ -235,9 +239,9 @@ const TOOLS = {
       metric,
       tract_count: pool.length,
       tract_count_with_data: values.length,
-      sum: agg === 'sum' ? total : undefined,
+      sum: agg === 'sum' ? num(total) : undefined,
       average: agg === 'average' ? Math.round(avg * 10) / 10 : undefined,
-      result: agg === 'sum' ? total : Math.round(avg * 10) / 10,
+      result: agg === 'sum' ? num(total) : Math.round(avg * 10) / 10,
     };
   },
 
