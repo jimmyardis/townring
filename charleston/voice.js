@@ -4,6 +4,7 @@
    ============================================================ */
 
 import Vapi from 'https://esm.sh/@vapi-ai/web@latest';
+import { lookupPlace } from '../shared/place-lookup.js';
 
 // =============================================================
 // VAPI CREDENTIALS
@@ -18,11 +19,12 @@ let DATA = { tracts: null, places: null, summary: null, productivity: null, load
 
 async function loadData() {
   try {
-    const [tracts, places, summary, productivity] = await Promise.all([
+    const [tracts, places, summary, productivity, colloquial] = await Promise.all([
       fetch('data/charleston-area-tracts.geojson').then(r => r.json()),
       fetch('data/charleston-places.geojson').then(r => r.json()),
       fetch('data/charleston-area-summary.json').then(r => r.json()),
       fetch('productivity/three-area/summary.json').then(r => r.json()),
+      fetch('../shared/colloquial.json').then(r => r.json()).then(d => d['charleston'] || {}).catch(() => ({})),
     ]);
     DATA = { tracts, places, summary, productivity, loaded: true };
     console.log(`Voice data loaded: ${tracts.features.length} tracts, ${places.features.length} places.`);
@@ -46,94 +48,7 @@ const TOOLS = {
    */
   get_place_info({ name }) {
     if (!DATA.loaded) return { error: 'Data not loaded yet — try again in a moment.' };
-    if (!name) return { error: 'Need a place name.' };
-    const n = String(name).toLowerCase().trim();
-
-    // 0. Metro / tri-county shortcut
-    if (/tri.?county|greater charleston|charleston metro|metro area/.test(n) || n === 'metro') {
-      return {
-        name: 'Greater Charleston Tri-County Metro',
-        type: 'metro_area',
-        counties: 'Charleston, Berkeley, Dorchester',
-        population_2020: num(DATA.summary.pop_2020),
-        population_2010: num(DATA.summary.pop_2010),
-        growth_pct_2010_2020: pct(DATA.summary.growth_pct_2010_2020),
-        note: 'Tri-county total. For individual county breakdowns use get_county_data.',
-      };
-    }
-
-    // 1. Counties
-    const yearsByCounty = DATA.summary?.county_population_by_year || {};
-    for (const [county, years] of Object.entries(yearsByCounty)) {
-      if (n.includes(county.toLowerCase()) || county.toLowerCase().includes(n)) {
-        const pop2020 = years['2020'];
-        const pop2010 = years['2010'];
-        return {
-          name: `${county} County, SC`,
-          type: 'county',
-          population_2020: num(pop2020),
-          population_2010: num(pop2010),
-          growth_2010_2020_pct: pop2010 && pop2020
-            ? pct(Math.round((pop2020 - pop2010) / pop2010 * 1000) / 10) : 'n/a',
-          population_by_year: fmtYears(years),
-        };
-      }
-    }
-
-    // 2. Named places (municipalities, CDPs, colloquial areas)
-    if (DATA.places?.features) {
-      const place = DATA.places.features.find(f => {
-        const dn = String(f.properties.display_name || '').toLowerCase();
-        const bn = String(f.properties.BASENAME || '').toLowerCase();
-        return dn.includes(n) || n.includes(dn) || (bn && (bn.includes(n) || n.includes(bn)));
-      });
-      if (place) {
-        const result = {
-          name: place.properties.display_name,
-          type: place.properties.kind,
-          notes: place.properties.tooltip,
-        };
-        // Enrich incorporated places with 2020 Census population
-        const placePop = DATA.summary?.place_population?.[place.properties.BASENAME];
-        if (placePop) {
-          result.population_2020 = num(placePop['2020']);
-          result.population_2010 = num(placePop['2010']) || null;
-          if (placePop['2020'] && placePop['2010']) {
-            result.growth_pct_2010_2020 = pct(Math.round(
-              (placePop['2020'] - placePop['2010']) / placePop['2010'] * 1000
-            ) / 10);
-          }
-          result.population_source = '2020 Decennial Census';
-        }
-        return result;
-      }
-    }
-
-    // 3. Tracts by number or partial name
-    if (DATA.tracts?.features) {
-      const digits = n.replace(/\D/g, '');
-      const tract = DATA.tracts.features.find(f => {
-        const t = String(f.properties.TRACT || '');
-        const tn = String(f.properties.NAME || '').toLowerCase();
-        return (digits && t.includes(digits)) || tn.includes(n);
-      });
-      if (tract) {
-        const p = tract.properties;
-        return {
-          name: p.NAME,
-          type: 'census_tract',
-          county: `${p.county_name} County, SC`,
-          population_2020: num(p.pop_2020),
-          population_2010: num(p.pop_2010),
-          growth_pct_2010_to_2020: pct(p.growth_pct),
-          median_income: num(p.median_income),
-          median_age: p.median_age,
-          note: p.has_2010 ? null : 'New tract since 2010 — no clean 2010 comparison.',
-        };
-      }
-    }
-
-    return { error: `Couldn't find "${name}". Try a city name (Charleston, Mount Pleasant, North Charleston), a county (Charleston County, Berkeley County), a neighborhood (West Ashley, The Peninsula, Shem Creek), or a census tract number.` };
+    return lookupPlace(name, DATA, 'charleston');
   },
 
   /**

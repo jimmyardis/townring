@@ -6,6 +6,7 @@
    ============================================================ */
 
 import Vapi from 'https://esm.sh/@vapi-ai/web@latest';
+import { lookupPlace } from '../shared/place-lookup.js';
 
 // =============================================================
 // VAPI CREDENTIALS  ← paste yours here
@@ -20,21 +21,24 @@ let DATA = {
   tracts: null,
   places: null,
   summary: null,
+  colloquial: null,      // shared/colloquial.json
   productivity: null,
   loaded: false,
 };
 
 async function loadData() {
   try {
-    const [tracts, places, summary, productivity] = await Promise.all([
+    const [tracts, places, summary, productivity, colloquial] = await Promise.all([
       fetch('data/columbia-area-tracts.geojson').then(r => r.json()),
       fetch('data/columbia-places.geojson').then(r => r.json()),
       fetch('data/columbia-area-summary.json').then(r => r.json()),
       fetch('productivity/citywide/summary.json').then(r => r.json()),
+      fetch('../shared/colloquial.json').then(r => r.json()).then(d => d['columbia'] || {}).catch(() => ({})),
     ]);
     DATA.tracts = tracts;
     DATA.places = places;
     DATA.summary = summary;
+    DATA.colloquial = colloquial;
     DATA.productivity = productivity;
     DATA.loaded = true;
     console.log(
@@ -57,63 +61,7 @@ const fmtYears = (obj) => Object.fromEntries(Object.entries(obj || {}).map(([k, 
 const TOOLS = {
   get_place_info({ name }) {
     if (!DATA.loaded) return { error: 'Data not loaded yet — try again in a moment.' };
-    if (!name) return { error: 'Need a place name to look up.' };
-    const n = String(name).toLowerCase().trim();
-
-    // 1. County
-    if (DATA.summary?.county_population_by_year) {
-      for (const [county, years] of Object.entries(DATA.summary.county_population_by_year)) {
-        if (n.includes(county.toLowerCase())) {
-          return {
-            name: `${county} County, SC`,
-            type: 'county',
-            population_by_year: fmtYears(years),
-            growth_2010_2020_pct: pct(DATA.summary.growth_pct_2010_2020),
-            note: 'Richland County is home to Columbia, the state capital of South Carolina.',
-          };
-        }
-      }
-    }
-
-    // 2. Places
-    if (DATA.places?.features) {
-      const place = DATA.places.features.find(f => {
-        const dn = String(f.properties.display_name || '').toLowerCase();
-        const bn = String(f.properties.BASENAME || '').toLowerCase();
-        return dn.includes(n) || bn.includes(n) || n.includes(bn);
-      });
-      if (place) {
-        return {
-          name: place.properties.display_name,
-          type: place.properties.kind,
-          notes: place.properties.tooltip,
-        };
-      }
-    }
-
-    // 3. Tracts
-    if (DATA.tracts?.features) {
-      const digits = n.replace(/\D/g, '');
-      const tract = DATA.tracts.features.find(f => {
-        const t = String(f.properties.TRACT || '');
-        const tn = String(f.properties.NAME || '').toLowerCase();
-        return (digits && t.includes(digits)) || tn.includes(n);
-      });
-      if (tract) {
-        const p = tract.properties;
-        return {
-          name: p.NAME,
-          type: 'census_tract',
-          county: `${p.county_name} County, SC`,
-          population_2010: num(p.pop_2010),
-          population_2020: num(p.pop_2020),
-          growth_pct_2010_to_2020: pct(p.growth_pct),
-          note: p.has_2010 ? null : 'This tract did not exist in 2010 — it was split from a larger tract.',
-        };
-      }
-    }
-
-    return { error: `Couldn't find a place matching "${name}".` };
+    return lookupPlace(name, DATA, 'columbia');
   },
 
   rank_tracts({ direction = 'fastest_growing', count = 5 }) {

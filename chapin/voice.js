@@ -8,6 +8,7 @@
    ============================================================ */
 
 import Vapi from 'https://esm.sh/@vapi-ai/web@latest';
+import { lookupPlace } from '../shared/place-lookup.js';
 
 // =============================================================
 // VAPI CREDENTIALS  ← only place you edit
@@ -21,22 +22,25 @@ const VAPI_ASSISTANT_ID  = 'ac689a99-081e-4f4e-8d80-746e6d7daa6a';
 let DATA = {
   tracts: null,         // chapin-area-tracts.geojson
   places: null,         // chapin-places.geojson
-  summary: null,        // chapin-area-summary.json
+  summary: null,
+  colloquial: null,      // shared/colloquial.json        // chapin-area-summary.json
   productivity: null,   // productivity/proper/summary.json
   loaded: false,
 };
 
 async function loadData() {
   try {
-    const [tracts, places, summary, productivity] = await Promise.all([
+    const [tracts, places, summary, productivity, colloquial] = await Promise.all([
       fetch('data/chapin-area-tracts.geojson').then(r => r.json()),
       fetch('data/chapin-places.geojson').then(r => r.json()),
       fetch('data/chapin-area-summary.json').then(r => r.json()),
       fetch('productivity/proper/summary.json').then(r => r.json()),
+      fetch('../shared/colloquial.json').then(r => r.json()).then(d => d['chapin'] || {}).catch(() => ({})),
     ]);
     DATA.tracts = tracts;
     DATA.places = places;
     DATA.summary = summary;
+    DATA.colloquial = colloquial;
     DATA.productivity = productivity;
     DATA.loaded = true;
     console.log(
@@ -66,72 +70,7 @@ const TOOLS = {
    */
   get_place_info({ name }) {
     if (!DATA.loaded) return { error: 'Data not loaded yet — try again in a moment.' };
-    if (!name) return { error: 'Need a place name to look up.' };
-
-    const n = String(name).toLowerCase().trim();
-
-    // 1. Counties
-    if (DATA.summary?.county_population_by_year) {
-      for (const [county, years] of Object.entries(DATA.summary.county_population_by_year)) {
-        if (n.includes(county.toLowerCase())) {
-          return {
-            name: `${county} County, SC`,
-            type: 'county',
-            population_by_year: fmtYears(years),
-            growth_2000_2020_pct: years[2000] && years[2020]
-              ? pct(Math.round((years[2020] - years[2000]) / years[2000] * 1000) / 10)
-              : 'n/a',
-            note: county === 'Lexington'
-              ? 'Most of Chapin proper is in Lexington County.'
-              : 'White Rock and the eastern Greater Chapin area are in Richland County.',
-          };
-        }
-      }
-    }
-
-    // 2. Places (towns, CDPs, ZIP, colloquial)
-    if (DATA.places?.features) {
-      const place = DATA.places.features.find(f => {
-        const dn = String(f.properties.display_name || '').toLowerCase();
-        const bn = String(f.properties.BASENAME || '').toLowerCase();
-        return dn.includes(n) || bn.includes(n) || n.includes(bn) || (bn && n.includes(bn));
-      });
-      if (place) {
-        return {
-          name: place.properties.display_name,
-          type: place.properties.kind,
-          county_fips: place.properties.STATE && place.properties.COUNTY
-            ? `${place.properties.STATE}${place.properties.COUNTY}` : null,
-          notes: place.properties.tooltip,
-        };
-      }
-    }
-
-    // 3. Tracts by tract number (e.g. "210.19" or "021019")
-    if (DATA.tracts?.features) {
-      const digits = n.replace(/\D/g, '');
-      const tract = DATA.tracts.features.find(f => {
-        const t = String(f.properties.TRACT || '');
-        const tn = String(f.properties.NAME || '').toLowerCase();
-        return (digits && t.includes(digits)) || tn.includes(n);
-      });
-      if (tract) {
-        const p = tract.properties;
-        return {
-          name: p.NAME,
-          type: 'census_tract',
-          county: `${p.county_name} County, SC`,
-          population_2010: num(p.pop_2010),
-          population_2020: num(p.pop_2020),
-          growth_pct_2010_to_2020: pct(p.growth_pct),
-          note: p.has_2010
-            ? null
-            : 'This tract did not exist in 2010 — it was created when an older tract was split (often a fast-growth area).',
-        };
-      }
-    }
-
-    return { error: `Couldn't find a place matching "${name}".` };
+    return lookupPlace(name, DATA, 'chapin');
   },
 
   /**

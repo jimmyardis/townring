@@ -8,6 +8,7 @@
    ============================================================ */
 
 import Vapi from 'https://esm.sh/@vapi-ai/web@latest';
+import { lookupPlace } from '../shared/place-lookup.js';
 
 // =============================================================
 // VAPI CREDENTIALS  ← paste your keys here
@@ -21,20 +22,23 @@ const VAPI_ASSISTANT_ID = 'e569e4e4-4cb2-4806-a1aa-9888d2381318';
 let DATA = {
   tracts:  null,   // sumter-area-tracts.geojson
   places:  null,   // sumter-places.geojson
-  summary: null,   // sumter-area-summary.json
+  summary: null,
+  colloquial: null,      // shared/colloquial.json   // sumter-area-summary.json
   loaded:  false,
 };
 
 async function loadData() {
   try {
-    const [tracts, places, summary] = await Promise.all([
+    const [tracts, places, summary, colloquial] = await Promise.all([
       fetch('data/sumter-area-tracts.geojson').then(r => r.json()),
       fetch('data/sumter-places.geojson').then(r => r.json()),
       fetch('data/sumter-area-summary.json').then(r => r.json()),
+      fetch('../shared/colloquial.json').then(r => r.json()).then(d => d['sumter'] || {}).catch(() => ({})),
     ]);
     DATA.tracts  = tracts;
     DATA.places  = places;
     DATA.summary = summary;
+    DATA.colloquial = colloquial;
     DATA.loaded  = true;
     console.log(`📚 Voice data loaded: ${tracts.features.length} tracts, ${places.features.length} places.`);
   } catch (err) {
@@ -54,61 +58,7 @@ const TOOLS = {
 
   get_place_info({ name }) {
     if (!DATA.loaded) return { error: 'Data not loaded yet — try again in a moment.' };
-    if (!name) return { error: 'Need a place name to look up.' };
-    const n = String(name).toLowerCase().trim();
-
-    // County lookup
-    if (DATA.summary?.county_population_by_year) {
-      for (const [county, years] of Object.entries(DATA.summary.county_population_by_year)) {
-        if (n.includes(county.toLowerCase())) {
-          return {
-            name: `${county} County, SC`,
-            type: 'county',
-            population_by_year: fmtYears(years),
-            note: 'Sumter County is home to Shaw Air Force Base and the city of Sumter.',
-          };
-        }
-      }
-    }
-
-    // Places (towns, cities, CDPs)
-    if (DATA.places?.features) {
-      const place = DATA.places.features.find(f => {
-        const dn = String(f.properties.display_name || '').toLowerCase();
-        const bn = String(f.properties.BASENAME || '').toLowerCase();
-        return dn.includes(n) || bn.includes(n) || n.includes(bn);
-      });
-      if (place) {
-        return {
-          name: place.properties.display_name,
-          type: place.properties.kind,
-          notes: place.properties.tooltip,
-        };
-      }
-    }
-
-    // Tract lookup by number
-    if (DATA.tracts?.features) {
-      const digits = n.replace(/\D/g, '');
-      const tract = DATA.tracts.features.find(f => {
-        const t = String(f.properties.TRACT || '');
-        const tn = String(f.properties.NAME || '').toLowerCase();
-        return (digits && t.includes(digits)) || tn.includes(n);
-      });
-      if (tract) {
-        const p = tract.properties;
-        return {
-          name: p.NAME,
-          type: 'census_tract',
-          county: 'Sumter County, SC',
-          population_2010: num(p.pop_2010),
-          population_2020: num(p.pop_2020),
-          growth_pct_2010_to_2020: pct(p.growth_pct),
-        };
-      }
-    }
-
-    return { error: `Couldn't find a place matching "${name}".` };
+    return lookupPlace(name, DATA, 'sumter');
   },
 
   rank_tracts({ direction = 'fastest_growing', count = 5 }) {
