@@ -21,10 +21,11 @@
 
 ## Next Action
 
-Point the Vapi assistants at `gpt-realtime-2025-08-28` (native speech-to-speech, existing tool configs port unchanged) and re-pick each city's voice, since ash/ballad/coral/fable/onyx/nova are unavailable on realtime models.
+Call **+1 803-875-3246** (Chapin TalkMap) from a real phone and check whether the five server-side data tools answer. The browser path is verified; the phone path is not, because Vapi's Web SDK intercepts tool calls client-side so a browser test cannot exercise it.
 
 ## Blockers
 
+- **The phone path is unverified.** The 5 data tools now carry a Railway server URL, but every browser test is answered client-side by `voice.js`, so only a real PSTN call to +1 803-875-3246 can confirm Vapi reaches the server. If it does not, the likely cause is assistant-to-tool version pinning — re-save the assistant after any tool edit.
 - **TIGERweb is WAF-blocking this network.** Every request to `tigerweb.geo.census.gov` returns a 189-byte "Request Rejected" page, root included, from any User-Agent. `api.census.gov` (ACS/decennial) is fine, so only tract *geometry* is unreachable and `execution/fetch_census.py` cannot complete a new city build. `execution/scope_city.py` works around it for cities carved out of an existing build. Retry before the next from-scratch city.
 
 ## Open Questions
@@ -39,6 +40,25 @@ Point the Vapi assistants at `gpt-realtime-2025-08-28` (native speech-to-speech,
 ## Session Log
 
 <!-- Append-only. Most recent session on top. Claude Code adds an entry at the end of each work session. -->
+
+### 2026-09-20 (later — voice)
+
+**Switched all four assistants to OpenAI realtime.** `gpt-realtime-2025-08-28`, native speech-to-speech; Deepgram transcriber cleared on all four. Voices: Chapin `cedar`, Charleston `echo`, Columbia `marin`, Sumter `alloy` — four of the five realtime-compatible voices. Note this also swapped the brain from **claude-sonnet-4-6** to OpenAI's realtime model; latency improves, reasoning is weaker. Original configs backed up before any write.
+
+**Found three of four assistants had been silently gutted.** Chapin, Charleston and Columbia had no system prompt and no tools — bare LLMs with a greeting. Only Sumter was intact.
+- Root cause, from Vapi's assistant version history: on **2026-05-29 at 21:17–21:22** all three were PATCHed from `claude-3-5-sonnet-20241022` to `claude-sonnet-4-6` with a partial `model` object. Vapi replaces the whole `model` object, so `messages` and `toolIds` went with it. Chapin's 2026-05-26 version still had 1 prompt + 9 tools; the 2026-05-29 version has 0 and 0. Sumter escaped only because it was created 2026-05-28 already on sonnet-4-6 and was never re-PATCHed.
+- **Lesson: never PATCH a Vapi assistant's `model` without carrying `messages` and `toolIds` forward.** Every write this session read the backup first and merged them back.
+- Recovered the original prompts from version history rather than rewriting them, then updated each for this session's data changes: Chapin's scope (24 tracts / 95,832, with a rule not to answer Columbia-metro questions), Columbia's expansion to Richland + Lexington, ACS 2023 → 2024, year range 2014-2023 → 2014-2024, dropped `get_productivity_info` (no such Vapi tool), and gave all four the full set of 10 tools.
+- Sumter's prompt claimed "grew 25.9% from 2010" — the inflated figure corrected earlier the same day. It now states plainly that Sumter is shrinking (about -3 percent, 107,800 in 2014 down to 104,700 in 2024).
+
+**The Railway API was orphaned.** All 10 Vapi tools had no server URL, so nothing ever called `chapin-talkmap-api` — the browser worked only because `voice.js` implements every tool client-side. Split the tools: the 5 **data** tools (`get_place_info`, `rank_tracts`, `get_county_data`, `aggregate_tracts`, `get_tract_population_history`) now point at `/api/vapi-tool`; the 5 **map-control** tools stay client-side, since they drive a Mapbox canvas that does not exist on a phone call.
+
+**City routing.** The 10 tools are shared by all four assistants, so a server-side call arrives not knowing which map the caller is on — the cross-city bleed that "Fix Charleston voice agent data confusion" already dealt with once. The server now resolves the city from the **assistant id** (which Vapi always sends and the model cannot forget), falling back to `?city=` then the old all-city search. Verified all four assistant ids route to their own city.
+
+**Live test (3 calls, real Vapi credits).** Drove headless Chromium with a fake mic feeding a looped TTS question at the live Sumter page. Confirmed: realtime model connects, agent greets, hears the question, selects the right tool, and answers with the refreshed data ("about a hundred four thousand seven hundred" for 2024 — correct). First attempt died on `silence-timed-out` because the fake-audio file plays from page load, not call start; looping the question fixed it.
+- The realtime model narrates numbers worse than Sonnet did — it said "104007" and "104000" for 104,725. Added a NUMBER RULE to all four prompts (years as one word-group, populations rounded and spoken in words, never invent digits); the retest then said "about 104,700". Transcripts still render years as "20 24", which may be Vapi's transcript formatting rather than the audio — worth an ear test.
+
+**Also:** `~/.env` line 54 is a bare duplicate of the Vapi key with no variable name; it throws `command not found` whenever the file is sourced.
 
 ### 2026-09-20
 
