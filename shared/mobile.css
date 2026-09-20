@@ -217,7 +217,12 @@
      legend's height. Hiding the divider's later siblings works
      whatever each city put down there. */
   .tr-dock .legend-section-divider,
-  .tr-dock .legend-section-divider ~ * { display: none; }
+  .tr-dock .legend-section-divider ~ *,
+  /* Named as well as positional: Charleston rebuilds its legend's
+     innerHTML per metric, so the divider is not always there to
+     anchor the sibling rule above. */
+  .tr-dock .legend-source,
+  .tr-dock .legend-section-title { display: none; }
 
   /* ---- Year slider ---- */
   .tr-dock .time-slider,
