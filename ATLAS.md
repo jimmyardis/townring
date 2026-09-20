@@ -21,7 +21,7 @@
 
 ## Next Action
 
-Call **+1 803-875-3246** (Chapin TalkMap) from a real phone and check whether the five server-side data tools answer. The browser path is verified; the phone path is not, because Vapi's Web SDK intercepts tool calls client-side so a browser test cannot exercise it.
+Re-check the remaining tools the same way `get_place_info` was checked — `set_metric`, `toggle_layer` and `scrub_year` have never been exercised against the live agent, and the growth bug showed that data faults hide behind tools that "work". Then call **+1 803-875-3246** (Chapin TalkMap) from a real phone and check whether the five server-side data tools answer. The browser path is verified; the phone path is not, because Vapi's Web SDK intercepts tool calls client-side so a browser test cannot exercise it.
 
 ## Blockers
 
@@ -40,6 +40,24 @@ Call **+1 803-875-3246** (Chapin TalkMap) from a real phone and check whether th
 ## Session Log
 
 <!-- Append-only. Most recent session on top. Claude Code adds an entry at the end of each work session. -->
+
+### 2026-09-20 (later still — data faults found by user testing)
+
+User reported "wonky" answers from the Chapin agent: asking for the population of Chapin returned 96,000, and some questions came back as "couldn't find that". Four separate faults behind it, three in the place lookup and one much bigger one in the tract data.
+
+**1. Places carried no population.** The places GeoJSON held a name and a boundary and nothing else, so "population of Chapin town" returned a name with no number — and the model fell back to the only figure it had, the 96,000 Greater Chapin total in its own system prompt. That is where the wrong answer came from. `execution/enrich_places.py` now joins Census place-level population (decennial 2010/2020 plus ACS 2014-2024) onto every place in all four cities; Chapin town reads 1,809 for 2020, about 1,400 on the latest ACS.
+
+**2. A bare name resolved to whichever branch ran first.** "Chapin" hit the map-area branch and returned 24 tracts typed as `city`. The same fault ran the other way in Charleston and Sumter, where the city name matches the county name — "population of Charleston" returned the county's 407,543 rather than the city's 150,227. The lookup now gathers every exact reading (place, county, map area) and returns all of them with a note telling the agent to lead with the place and say which figure it is quoting.
+
+**3. Colloquial names had nowhere to land.** White Rock, Ballentine, Lake Murray, Dutch Fork, West Ashley, Shaw AFB — all real local names, none of them census geography, all falling through to "couldn't find a place", which sounds like a broken map. `shared/colloquial.json` describes them per city and the lookup explains they have no official population instead of failing.
+
+**4. Per-tract growth was wrong almost everywhere.** Found while sweeping the other tools: `growth_pct` disagreed with each tract's own `pop_2010` and `pop_2020` in 14/14 comparable Chapin tracts, 134/134 Charleston, 133/133 Columbia, 20/20 Sumter. Some had the wrong sign — Sumter tract 16 read -17.5% where its counts give +7.3%; Columbia 115.02 read -45.8% against an actual +40.7%. This fed the **default** growth choropleth, the tract popups and `rank_tracts`, so the fastest-growing and declining lists were wrong as well. Chapin's top grower is tract 210.21 at 38.0%, not 213.03 at the 39.9% shown (really 25.9%). `execution/repair_growth.py` recomputes growth from the authoritative decennial counts, nulls it where a tract has no 2010 count, needs no network, and is safe to re-run.
+
+**Consolidation.** The four `voice.js` files each carried their own copy of the place lookup (59 to 92 lines, all slightly different, all sharing the three bugs) — the same drift that had happened with the CSS. They now delegate to `shared/place-lookup.js`, and `execution/sync_api.sh` generates the CommonJS twin the phone API uses plus copies the data across, so browser and phone cannot answer the same question differently.
+
+**Verified live** with a real voice call on townring.com/chapin: "What is the population of Chapin?" now answers "Chapin Town itself had about eighteen hundred people in twenty twenty... about fourteen hundred now," then offers the broader area — exactly the intended behaviour. Also swept all five data tools for Chapin; the other four were already sound.
+
+**Lesson worth keeping:** a tool returning a well-formed response is not evidence the data behind it is right. `rank_tracts` had been "working" for months while ranking on a corrupt field.
 
 ### 2026-09-20 (later — voice)
 
