@@ -1,0 +1,272 @@
+/* ============================================================
+   TownRing — shared mobile layout
+   ------------------------------------------------------------
+   Loaded after each city's styles.css. Owns phone layout for
+   every city so the four stylesheets can't drift apart again.
+
+   The problem this solves: each city pinned .legend, the year
+   slider and .voice-cluster to the bottom independently, so on a
+   phone all three landed in the same ~130px band and the slider
+   painted over the legend. Here they are moved into one flex
+   column (.tr-dock, built by mobile.js) and simply stack.
+
+   Cities set --tr-accent in their own stylesheet.
+   ============================================================ */
+
+@media (max-width: 640px) {
+
+  /* ---- Header: title only, never more than half the width ---- */
+  .overlay {
+    top: 8px;
+    left: 8px;
+    right: auto;
+    bottom: auto;
+    width: auto;
+    max-width: 58%;
+    padding: 7px 11px 8px;
+    border-radius: 3px;
+    z-index: 12;
+  }
+  .overlay h1 {
+    font-size: 16px;
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  .overlay .subtitle { display: none; }
+  .overlay .back-link {
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    margin-bottom: 2px;
+    display: inline-block;
+  }
+  .overlay .phase-tag {
+    font-size: 8px;
+    line-height: 1.25;
+    letter-spacing: 0.05em;
+    margin: 3px 0 0;
+  }
+
+  /* ---- Controls: collapsed behind a ☰ toggle ---- */
+  .tr-controls-toggle {
+    position: fixed;
+    top: 8px;
+    right: 8px;
+    z-index: 14;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 19px;
+    line-height: 1;
+    color: #fff;
+    background: var(--tr-accent, #0a0a0a);
+    border: none;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tr-controls-toggle:active { transform: scale(0.94); }
+
+  .controls {
+    position: fixed;
+    top: 58px;
+    right: 8px;
+    left: auto;
+    bottom: auto;
+    width: 190px;
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 74px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 5px;
+    padding: 9px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.26);
+    z-index: 13;
+  }
+  .controls.tr-open { display: flex; }
+
+  /* Scoped to .controls: Charleston also has a free-floating
+     .metric-selector panel, and a bare width:100% on it overflowed
+     the page. mobile.js moves that panel in here instead. */
+  .controls button,
+  .controls select,
+  .controls .metric-selector,
+  .controls .metric-selector-wrap {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  .controls .metric-selector {
+    position: static;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    margin: 0;
+    padding: 6px 9px 7px;
+    box-shadow: none;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-radius: 0;
+  }
+  .controls .metric-label {
+    display: block;
+    font-size: 8.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .controls button {
+    font-size: 12px;
+    padding: 9px 8px;
+    letter-spacing: 0;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .controls .metric-selector-wrap { padding: 6px 9px 7px; }
+  .controls .metric-selector-label { font-size: 8.5px; letter-spacing: 0.06em; }
+  .controls select { font-size: 12px; padding-right: 14px; }
+
+  /* ---- The dock: legend, slider and voice button, stacked ----
+     mobile.js moves the three into .tr-dock, so they flow in
+     order instead of each being pinned to the bottom. */
+  .tr-dock {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    /* Bottom padding leaves a strip for the Mapbox logo + attribution,
+       which their terms require to stay visible. The container is
+       click-through, so taps in that strip reach the controls. */
+    padding: 0 8px calc(26px + env(safe-area-inset-bottom, 0px));
+    pointer-events: none;
+  }
+  .tr-dock > * { pointer-events: auto; }
+
+  /* Children are in the dock now — drop every pinning rule the
+     city stylesheets set, or they fight the flex column. */
+  .tr-dock .legend,
+  .tr-dock .time-slider,
+  .tr-dock .year-slider-wrap,
+  .tr-dock .voice-cluster {
+    position: static;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    margin: 0;
+    width: auto;
+    max-width: none;
+    min-width: 0;
+  }
+
+  /* ---- Legend: compact, collapsible by tapping the title ---- */
+  .tr-dock .legend {
+    order: 1;
+    padding: 8px 10px;
+    font-size: 9.5px;
+    border-radius: 4px;
+    max-height: 34vh;
+    overflow-y: auto;
+  }
+  .tr-dock .legend .legend-title {
+    font-size: 10.5px;
+    line-height: 1.2;
+    margin: 0 0 5px;
+    padding-right: 16px;
+    position: relative;
+    cursor: pointer;
+  }
+  /* Chevron marks the title as the collapse control */
+  .tr-dock .legend .legend-title::after {
+    content: '▾';
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-size: 10px;
+    opacity: 0.5;
+    transition: transform 0.18s ease;
+  }
+  .tr-dock .legend.tr-collapsed .legend-title::after { transform: rotate(-90deg); }
+  .tr-dock .legend.tr-collapsed .legend-title { margin-bottom: 0; }
+  .tr-dock .legend.tr-collapsed > *:not(.legend-title) { display: none; }
+
+  .tr-dock .legend-bar { height: 7px; }
+  .tr-dock .legend-labels { font-size: 8.5px; margin-bottom: 4px; }
+  .tr-dock .legend-extra { font-size: 9px; margin-bottom: 3px; gap: 6px; }
+  /* Everything from the divider on is the Places key and the source
+     note — detail the popups already carry, and the main cost of the
+     legend's height. Hiding the divider's later siblings works
+     whatever each city put down there. */
+  .tr-dock .legend-section-divider,
+  .tr-dock .legend-section-divider ~ * { display: none; }
+
+  /* ---- Year slider ---- */
+  .tr-dock .time-slider,
+  .tr-dock .year-slider-wrap {
+    order: 2;
+    padding: 7px 13px 6px;
+    border-radius: 4px;
+  }
+  .tr-dock .time-slider.hidden { transform: none; }
+  .tr-dock .time-slider-year { font-size: 17px; }
+  .tr-dock .time-slider-prefix { font-size: 8.5px; }
+  .tr-dock .time-slider-bounds,
+  .tr-dock .year-range { font-size: 9px; }
+  .tr-dock .year-label { font-size: 11px; }
+  .tr-dock input[type="range"] { width: 100%; }
+
+  /* ---- Voice button ---- */
+  .tr-dock .voice-cluster {
+    order: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .tr-dock .voice-btn {
+    font-size: 13px;
+    padding: 11px 20px 11px 17px;
+  }
+  .tr-dock .transcript {
+    max-width: 100%;
+    font-size: 12px;
+    padding: 9px 13px;
+  }
+
+  /* ---- Desktop-only chrome ---- */
+  /* The city's own footer is mouse instructions ("right-click +
+     drag to rotate") — meaningless on a touch device. */
+  .attribution { display: none; }
+
+  /* Zoom and compass buttons: pinch and two-finger rotate already
+     do this, and they collide with the dock. */
+  .mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-group { display: none; }
+
+  /* Keep the logo and attribution visible, in the dock's bottom strip */
+  .mapboxgl-ctrl-bottom-left,
+  .mapboxgl-ctrl-bottom-right {
+    z-index: 11;
+    margin-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .mapboxgl-ctrl-bottom-left .mapboxgl-ctrl { margin: 0 0 2px 4px; }
+  .mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-attrib { margin: 0 4px 2px 0; }
+}

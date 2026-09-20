@@ -1,3 +1,6 @@
+/* Theme accent, consumed by ../shared/mobile.css */
+:root { --tr-accent: #0e4d6c; }
+
 /* ============================================================
    Charleston Map — TownRing
    Harbor palette: deep teal, palmetto gold, warm white

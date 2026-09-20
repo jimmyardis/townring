@@ -1,3 +1,6 @@
+/* Theme accent, consumed by ../shared/mobile.css */
+:root { --tr-accent: #5C4A1E; }
+
 /* ============================================================
    The Sumter Map — styles
    Editorial palette: olive earth, warm tan, off-white

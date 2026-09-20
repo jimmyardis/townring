@@ -314,7 +314,7 @@ const TOOLS = {
   },
 
   /**
-   * Scrub the annual population layer to a specific year (2014–2022).
+   * Scrub the annual population layer to a specific year (2014–2024).
    */
   scrub_year({ year }) {
     return window.charlestonMap?.setYear?.(year) ?? { error: 'Map not initialized.' };

@@ -48,10 +48,11 @@ const TAX_ACRE_STOPS = [
   [150000, '#4a0a0a'],
 ];
 
-// Bounding box of the Greater Chapin union (computed in compute-chapin-union.py)
+// Bounding box of the Greater Chapin union — the 24 tracts within 20 km of
+// Chapin (execution/scope_city.py). Regenerate if radius_km changes.
 const GREATER_CHAPIN_BOUNDS = [
-  [-81.437, 34.063],  // SW corner [lng, lat]
-  [-81.147, 34.239],  // NE corner
+  [-81.493, 33.960],  // SW corner [lng, lat]
+  [-81.120, 34.240],  // NE corner
 ];
 
 // =============================================================

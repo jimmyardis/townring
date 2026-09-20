@@ -397,8 +397,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", required=True)
     parser.add_argument("--key", default=os.environ.get("CENSUS_API_KEY", ""))
-    parser.add_argument("--radius", type=float, default=25.0,
-                        help="km radius for 'greater area' tagging")
+    parser.add_argument("--radius", type=float, default=None,
+                        help="km radius from center; tracts whose centroid falls outside "
+                             "it are excluded. Overrides radius_km in the config. "
+                             "Omit both to keep every tract in the listed counties.")
     parser.add_argument("--demo-year", type=int, default=2024,
                         help="ACS 5-year vintage for snapshot demographics (default 2024)")
     args = parser.parse_args()
@@ -421,6 +423,10 @@ def main():
     if not county_names_map:
         county_names_map = {raw_counties[0]: cfg.get("county", city)}
 
+    # A city is either a whole-county build (radius None) or a radius-scoped one.
+    # Without this, two configs listing the same counties produce identical output.
+    radius_km = args.radius if args.radius is not None else cfg.get("radius_km")
+
     out_dir = Path(slug) / "data"
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -428,6 +434,7 @@ def main():
     print(f"Counties: {raw_counties}")
     print(f"ACS snapshot year: {args.demo_year}")
     print(f"Annual slider: {ACS_YEARS[0]}–{ACS_YEARS[-1]}")
+    print(f"Scope: {f'{radius_km} km around center' if radius_km else 'whole county/counties'}")
     print(f"Output: {out_dir}/\n")
 
     # -----------------------------------------------------------------------
@@ -497,6 +504,9 @@ def main():
         except Exception:
             dist_km = 999
 
+        if radius_km is not None and dist_km > radius_km:
+            continue
+
         land_m2 = int(feat["properties"].get("AREALAND") or 0)
         aland_sqkm = round(land_m2 / 1_000_000, 4) if land_m2 else None
 
@@ -528,7 +538,7 @@ def main():
             "NAME":        feat["properties"].get("NAME", ""),
             "county_name": county_name,
             "aland_sqkm":  aland_sqkm,
-            "is_greater_area": dist_km <= args.radius,
+            "is_greater_area": radius_km is None or dist_km <= radius_km,
             # Decennial population
             "pop_2020":    pop_2020,
             "pop_2010":    pop_2010,
@@ -596,6 +606,14 @@ def main():
     pop_2020_total = sum(f["properties"].get("pop_2020") or 0 for f in tract_features)
     pop_2010_total = sum(f["properties"].get("pop_2010") or 0 for f in tract_features)
 
+    # Tracts whose boundaries changed have no 2010 count. Summing every tract's
+    # 2020 population against only the ones that existed in 2010 invents growth,
+    # so compare like-for-like over tracts carrying both numbers.
+    comparable = [f["properties"] for f in tract_features
+                  if f["properties"].get("pop_2010") and f["properties"].get("pop_2020")]
+    cmp_2010 = sum(p["pop_2010"] for p in comparable)
+    cmp_2020 = sum(p["pop_2020"] for p in comparable)
+
     summary = {
         "city":        city,
         "state":       "SC",
@@ -605,13 +623,22 @@ def main():
         "fips_county": raw_counties,
         "center":      {"lng": center[0], "lat": center[1]},
         "acs_vintage": args.demo_year,
+        "radius_km":   radius_km,
         "total_tracts": len(tract_features),
         "pop_2020":    pop_2020_total,
         "pop_2010":    pop_2010_total,
         "growth_pct_2010_2020": (
-            round((pop_2020_total - pop_2010_total) / pop_2010_total * 100, 1)
-            if pop_2010_total else None
+            round((cmp_2020 - cmp_2010) / cmp_2010 * 100, 1) if cmp_2010 else None
         ),
+        "growth_basis": {
+            "comparable_tracts": len(comparable),
+            "total_tracts": len(tract_features),
+            "pop_2010": cmp_2010,
+            "pop_2020": cmp_2020,
+            "note": ("Growth compares only tracts reporting both 2010 and 2020 counts; "
+                     f"{len(tract_features) - len(comparable)} tracts had boundary "
+                     "changes and are excluded."),
+        },
         "county_population_by_year": county_annual_pops,
     }
     path_summary = out_dir / f"{slug}-area-summary.json"

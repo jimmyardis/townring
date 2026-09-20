@@ -15,6 +15,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="../shared/mobile.css">
 </head>
 <body>
   <div id="map"></div>
@@ -46,9 +47,9 @@
 
   <!-- Year slider (hidden unless metric is year-aware) -->
   <div class="year-slider-wrap" id="yearSliderWrap" style="display:none;">
-    <label class="year-label" id="yearLabel">Year: 2022</label>
-    <input type="range" id="yearSlider" min="2014" max="2022" step="1" value="2022">
-    <div class="year-range"><span>2014</span><span>2022</span></div>
+    <label class="year-label" id="yearLabel">Year: 2024</label>
+    <input type="range" id="yearSlider" min="2014" max="2024" step="1" value="2024">
+    <div class="year-range"><span>2014</span><span>2024</span></div>
   </div>
 
   <!-- Legend (bottom-right) -->
@@ -98,5 +99,6 @@
 
   <script src="map.js"></script>
   <script type="module" src="voice.js"></script>
+  <script src="../shared/mobile.js"></script>
 </body>
 </html>

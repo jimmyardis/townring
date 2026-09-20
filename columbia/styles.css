@@ -1,3 +1,6 @@
+/* Theme accent, consumed by ../shared/mobile.css */
+:root { --tr-accent: #73000A; }
+
 /* ============================================================
    The Chapin Map — Session 1 styles
    Editorial palette: navy, off-white, warm neutrals

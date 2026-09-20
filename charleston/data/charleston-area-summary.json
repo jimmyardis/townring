@@ -21,7 +21,7 @@
   "total_tracts": 178,
   "pop_2020": 790955,
   "pop_2010": 513388,
-  "growth_pct_2010_2020": 54.1,
+  "growth_pct_2010_2020": 16.6,
   "county_population_by_year": {
     "Charleston": {
       "2014": 365674,
@@ -62,5 +62,12 @@
       "2023": 164322,
       "2024": 167201
     }
+  },
+  "growth_basis": {
+    "comparable_tracts": 134,
+    "total_tracts": 178,
+    "pop_2010": 513388,
+    "pop_2020": 598379,
+    "note": "Growth compares only tracts reporting both 2010 and 2020 counts; 44 tracts had boundary changes and are excluded."
   }
 }

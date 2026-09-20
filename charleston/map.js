@@ -767,7 +767,7 @@ window.charlestonMap = {
 
   setYear(year) {
     const y = parseInt(year);
-    if (isNaN(y) || y < 2014 || y > 2022) return { success: false, error: 'Year must be 2014–2022.' };
+    if (isNaN(y) || y < 2014 || y > 2024) return { success: false, error: 'Year must be 2014–2024.' };
     currentYear = y;
     if (METRICS[currentMetric]?.isYearAware) {
       setMetricLayer(currentMetric, y);
