@@ -10,7 +10,7 @@
 | **Project** | TownRing |
 | **One-liner** | Voice-driven census data web maps for SC cities with Vapi voice agents and choropleth visualization |
 | **Status** | building |
-| **Last Active** | 2026-09-20 |
+| **Last Active** | 2026-10-04 |
 | **Stall Threshold** | 7 days |
 | **Repo** | https://github.com/jimmyardis/townring |
 | **Stack** | Mapbox GL JS, Vapi (voice SDK + phone), Express/Node (Railway API), GitHub Pages, Python (Census data pipeline) |
@@ -21,7 +21,7 @@
 
 ## Next Action
 
-Re-check the remaining tools the same way `get_place_info` was checked — `set_metric`, `toggle_layer` and `scrub_year` have never been exercised against the live agent, and the growth bug showed that data faults hide behind tools that "work". Then call **+1 803-875-3246** (Chapin TalkMap) from a real phone and check whether the five server-side data tools answer. The browser path is verified; the phone path is not, because Vapi's Web SDK intercepts tool calls client-side so a browser test cannot exercise it.
+Run `python execution/eval.py --all` before any deploy, and extend the `tools` group to cover the map-control tools (`set_metric`, `toggle_layer`, `scrub_year`), which are client-side and so are the one thing the harness cannot reach yet. Then call **+1 803-875-3246** (Chapin TalkMap) from a real phone and check whether the five server-side data tools answer. The browser path is verified; the phone path is not, because Vapi's Web SDK intercepts tool calls client-side so a browser test cannot exercise it.
 
 ## Blockers
 
@@ -40,6 +40,26 @@ Re-check the remaining tools the same way `get_place_info` was checked — `set_
 ## Session Log
 
 <!-- Append-only. Most recent session on top. Claude Code adds an entry at the end of each work session. -->
+
+### 2026-10-04
+
+**Built an eval harness** (`execution/eval.py`, `EVAL.md`, `eval_selftest.sh`, `eval_lookup.mjs`). Prompted by the pattern across the previous session: `rank_tracts` ranked on a corrupt growth field for months while returning well-formed answers, and three Vapi assistants sat gutted for four months. Both were found by hand, late.
+
+Six groups, all four cities, 116 checks:
+- `data` — counts agree, derived fields match their inputs, growth null where no 2010 count, ACS vintage current, places carry population, no city is a copy of another, radius-scoped cities stay in radius
+- `layers` — every metric `map.js` colours by exists in the tract data and has usable coverage, and the year slider offers no empty year. This is the "data layers per geography" check: a renamed or empty field renders a blank layer, which reads as a styling bug and is not one
+- `tools` — runs the real `shared/place-lookup.js` through a small Node harness
+- `live` — pages, data files, shared assets, and the deployed summary matching the working tree
+- `api` — the voice API's cities, per-assistant routing, rankings and lookups agreeing with local data
+- `vapi` — assistant model, voice, prompt, tool count, transcriber, and the server/client split across the ten tools
+
+Offline groups by default; `--all` adds network. Non-zero exit on any FAIL so it can gate a deploy. Current state: **107 passed, 0 failed, 9 skipped**.
+
+Every check is traceable to a fault that actually shipped — EVAL.md maps them one to one, so none of them is speculative.
+
+`eval_selftest.sh` injects four of those fault classes (drifted derived field, places with no population, duplicated dataset, renamed metric field), confirms the eval goes red for each, and restores from git. It refuses to run on a dirty `*/data/` tree. Caught a bug in itself on the first run: `set -o pipefail` plus `eval.py`'s non-zero exit made every caught fault report as missed.
+
+Known gap: the five map-control tools (`fly_to_place`, `set_metric`, `scrub_year`, `toggle_layer`, `reset_view`) are client-side and drive a Mapbox canvas, so the harness cannot exercise them without a headless browser. They remain the untested surface.
 
 ### 2026-09-20 (later still — data faults found by user testing)
 
